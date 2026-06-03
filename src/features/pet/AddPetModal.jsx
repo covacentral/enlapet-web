@@ -66,12 +66,6 @@ export default function AddPetModal({ onSaveComplete, onBack }) {
         const storageRef = ref(storage, `pets/${fileId}.webp`);
         await uploadBytes(storageRef, croppedBlob, { contentType: 'image/webp' });
         photoUrl = await getDownloadURL(storageRef);
-
-        // Si tenemos activada la extensión "Resize Images" en Firebase Storage,
-        // la extensión generará automáticamente el archivo "_1080x1080.webp".
-        // Para pre-optimizar el frontend, re-escribimos la URL apuntando a la imagen procesada.
-        // Nota: Asegúrate de tener instalada la extensión en Firebase Console con tamaño 1080x1080.
-        photoUrl = photoUrl.replace(`${fileId}.webp`, `${fileId}_1080x1080.webp`);
       }
 
       // 2. Generar EPID y token de escaneo seguro
