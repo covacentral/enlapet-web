@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { doc, getDoc } from 'firebase/firestore';
+import React, { useState, useEffect } from 'react';
+import { doc, getDoc, collection, getDocs, query, orderBy } from 'firebase/firestore';
 import { db } from '../../core/firebase/firebase';
 import styles from './PublicPetView.module.css';
 
@@ -8,6 +8,7 @@ export default function PublicPetView({ secureToken }) {
   const [error, setError] = useState('');
   const [pet, setPet] = useState(null);
   const [owner, setOwner] = useState(null);
+  const [records, setRecords] = useState([]);
 
   useEffect(() => {
     const resolveNfcToken = async () => {
@@ -49,6 +50,16 @@ export default function PublicPetView({ secureToken }) {
         if (ownerSnap.exists()) {
           setOwner(ownerSnap.data());
         }
+
+        // 4. Obtener diario médico (vacunas e historial clínico)
+        const recordsRef = collection(db, 'pets', petId, 'medical_records');
+        const q = query(recordsRef, orderBy('date', 'desc'));
+        const recordsSnap = await getDocs(q);
+        const recordsList = [];
+        recordsSnap.forEach((doc) => {
+          recordsList.push({ id: doc.id, ...doc.data() });
+        });
+        setRecords(recordsList);
 
       } catch (err) {
         console.error("Error al resolver perfil de identificación:", err);
@@ -145,6 +156,36 @@ export default function PublicPetView({ secureToken }) {
             </p>
           </div>
         )}
+
+        {/* Historial Médico y de Vacunación */}
+        <div className={styles.recordsSection}>
+          <h3 className={styles.recordsTitle}>📋 Diario de Salud</h3>
+          {records.length === 0 ? (
+            <div className={styles.emptyRecords}>
+              No hay vacunas o notas clínicas registradas aún.
+            </div>
+          ) : (
+            <div className={styles.recordsList}>
+              {records.map((record) => (
+                <div key={record.id} className={styles.recordCard}>
+                  <span className={styles.recordIcon}>
+                    {record.type === 'vaccine' ? '💉' : '📝'}
+                  </span>
+                  <div className={styles.recordContent}>
+                    <div className={styles.recordHeader}>
+                      <span className={styles.recordTitle}>{record.title}</span>
+                      <span className={styles.recordDate}>{record.date}</span>
+                    </div>
+                    <span className={`${styles.recordBadge} ${record.type === 'vaccine' ? styles.badgeVaccine : styles.badgeHistory}`}>
+                      {record.type === 'vaccine' ? 'Vacuna' : 'Clínico'}
+                    </span>
+                    {record.notes && <p className={styles.recordNotes}>{record.notes}</p>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* Botón de Contacto por WhatsApp */}
         {owner?.contact?.phone && (

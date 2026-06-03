@@ -5,11 +5,13 @@ import PetDashboard from './features/pet/PetDashboard';
 import OwnerConfig from './features/owner/OwnerConfig';
 import AddPetModal from './features/pet/AddPetModal';
 import PublicPetView from './features/nfc/PublicPetView';
+import PetJournal from './features/pet/PetJournal';
 
 function AppContent() {
   const { user, loading } = useAuth();
-  const [view, setView] = useState('dashboard'); // dashboard, owner-config, add-pet, public-view
+  const [view, setView] = useState('dashboard'); // dashboard, owner-config, add-pet, public-view, pet-journal
   const [nfcToken, setNfcToken] = useState(null);
+  const [selectedPetId, setSelectedPetId] = useState(null);
 
   // Router nativo por análisis de Pathname (para escaneos de NFC /p/<token>)
   useEffect(() => {
@@ -64,6 +66,13 @@ function AppContent() {
           onBack={() => setView('dashboard')} 
         />
       );
+    case 'pet-journal':
+      return (
+        <PetJournal 
+          petId={selectedPetId} 
+          onBack={() => setView('dashboard')} 
+        />
+      );
     case 'dashboard':
     default:
       return (
@@ -71,9 +80,8 @@ function AppContent() {
           onNavigateToOwnerConfig={() => setView('owner-config')}
           onNavigateToAddPet={() => setView('add-pet')}
           onNavigateToPetDetail={(petId) => {
-            // En el MVP inicial, "Ver Diario" redirige o alerta al usuario 
-            // que estará disponible en la app móvil.
-            alert("Esta función de diario detallado estará disponible próximamente en nuestra aplicación móvil iOS y Android.");
+            setSelectedPetId(petId);
+            setView('pet-journal');
           }}
         />
       );

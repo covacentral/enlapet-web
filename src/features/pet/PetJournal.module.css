@@ -1,0 +1,252 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: hsl(220, 30%, 98%);
+  font-family: 'Outfit', sans-serif;
+  padding: 16px;
+  padding-bottom: 40px;
+}
+
+.header {
+  margin-top: 12px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.backBtn {
+  background: none;
+  border: none;
+  color: hsl(220, 20%, 30%);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: hsl(220, 40%, 15%);
+}
+
+.petHeaderCard {
+  background-color: white;
+  border-radius: 20px;
+  padding: 16px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
+  border: 1px solid hsl(220, 30%, 95%);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.petThumb {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.petInfo h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: hsl(220, 40%, 15%);
+}
+
+.petInfo p {
+  font-size: 0.8rem;
+  color: hsl(220, 10%, 55%);
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.sectionTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: hsl(220, 30%, 25%);
+}
+
+.btnAddRecord {
+  background-color: hsl(200, 100%, 95%);
+  color: hsl(200, 95%, 40%);
+  border: none;
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.formCard {
+  background-color: white;
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+  border: 1px solid hsl(220, 30%, 93%);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: slideDown 0.3s ease-out;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: hsl(220, 20%, 35%);
+}
+
+.input, .select, .textarea {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1.5px solid hsl(220, 20%, 90%);
+  font-size: 0.9rem;
+  outline: none;
+  font-family: inherit;
+  color: hsl(220, 30%, 20%);
+}
+
+.input:focus, .select:focus, .textarea:focus {
+  border-color: hsl(200, 100%, 45%);
+}
+
+.formActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.btnCancel {
+  flex: 1;
+  padding: 10px;
+  background-color: hsl(220, 10%, 95%);
+  color: hsl(220, 10%, 30%);
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btnSave {
+  flex: 1;
+  padding: 10px;
+  background: linear-gradient(135deg, hsl(200, 100%, 45%), hsl(220, 100%, 55%));
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.recordsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.recordCard {
+  background-color: white;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.01);
+  border: 1px solid hsl(220, 30%, 95%);
+  display: flex;
+  gap: 12px;
+}
+
+.recordIcon {
+  font-size: 1.5rem;
+  display: flex;
+  align-items: flex-start;
+  margin-top: 2px;
+}
+
+.recordContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.recordHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.recordTitle {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: hsl(220, 40%, 15%);
+}
+
+.recordDate {
+  font-size: 0.75rem;
+  color: hsl(220, 10%, 60%);
+}
+
+.recordBadge {
+  align-self: flex-start;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+  text-transform: uppercase;
+}
+
+.badgeVaccine {
+  background-color: hsl(200, 100%, 96%);
+  color: hsl(200, 100%, 35%);
+}
+
+.badgeHistory {
+  background-color: hsl(270, 100%, 96%);
+  color: hsl(270, 100%, 40%);
+}
+
+.recordNotes {
+  font-size: 0.85rem;
+  color: hsl(220, 10%, 45%);
+  line-height: 1.4;
+  margin-top: 2px;
+}
+
+.emptyRecords {
+  background-color: white;
+  border-radius: 20px;
+  padding: 32px 16px;
+  text-align: center;
+  color: hsl(220, 10%, 55%);
+  font-size: 0.85rem;
+  border: 1px dashed hsl(220, 20%, 90%);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

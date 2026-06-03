@@ -183,3 +183,100 @@
   font-size: 0.95rem;
   line-height: 1.5;
 }
+
+.recordsSection {
+  width: 100%;
+  text-align: left;
+  margin-bottom: 24px;
+}
+
+.recordsTitle {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: hsl(220, 20%, 30%);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.recordsList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.recordCard {
+  background-color: hsl(220, 30%, 98%);
+  border-radius: 16px;
+  padding: 12px;
+  border: 1px solid hsl(220, 30%, 94%);
+  display: flex;
+  gap: 10px;
+}
+
+.recordIcon {
+  font-size: 1.2rem;
+  margin-top: 1px;
+}
+
+.recordContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.recordHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.recordTitle {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: hsl(220, 40%, 15%);
+}
+
+.recordDate {
+  font-size: 0.7rem;
+  color: hsl(220, 10%, 60%);
+}
+
+.recordBadge {
+  align-self: flex-start;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.badgeVaccine {
+  background-color: hsl(200, 100%, 96%);
+  color: hsl(200, 100%, 35%);
+}
+
+.badgeHistory {
+  background-color: hsl(270, 100%, 96%);
+  color: hsl(270, 100%, 40%);
+}
+
+.recordNotes {
+  font-size: 0.8rem;
+  color: hsl(220, 10%, 45%);
+  line-height: 1.4;
+  margin-top: 4px;
+}
+
+.emptyRecords {
+  font-size: 0.8rem;
+  color: hsl(220, 10%, 60%);
+  text-align: center;
+  padding: 12px;
+  background-color: hsl(220, 30%, 98%);
+  border-radius: 16px;
+  border: 1px dashed hsl(220, 20%, 90%);
+}
+
