@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../core/firebase/firebase';
 import { useAuth } from '../auth/AuthContext';
+import { ChevronLeft, Info } from 'lucide-react';
 import styles from './OwnerConfig.module.css';
 
 export default function OwnerConfig({ onSaveComplete, onBack }) {
@@ -65,7 +66,7 @@ export default function OwnerConfig({ onSaveComplete, onBack }) {
       <div className={styles.header}>
         {onBack && (
           <button onClick={onBack} className={styles.backBtn} aria-label="Volver">
-            ←
+            <ChevronLeft size={20} />
           </button>
         )}
         <h1 className={styles.title}>Ficha del Dueño</h1>
@@ -73,7 +74,7 @@ export default function OwnerConfig({ onSaveComplete, onBack }) {
 
       <form onSubmit={handleSave} className={styles.card}>
         <div className={styles.infoAlert}>
-          <span>💡</span>
+          <Info className={styles.infoIcon} size={20} />
           <p>
             Esta información se utilizará para que te contacten en caso de que tu mascota se pierda. Solo se pedirá tu ubicación general (País, Ciudad, Barrio) y tu WhatsApp. <strong>No guardamos dirección exacta por privacidad.</strong>
           </p>

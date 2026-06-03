@@ -5,6 +5,7 @@ import { db, storage } from '../../core/firebase/firebase';
 import { useAuth } from '../auth/AuthContext';
 import { generateEPID, generateSecureToken } from '../../shared/utils/generators';
 import ImageCropper from '../../shared/components/ImageCropper';
+import { ChevronLeft, Camera } from 'lucide-react';
 import styles from './AddPetModal.module.css';
 
 export default function AddPetModal({ onSaveComplete, onBack }) {
@@ -120,7 +121,7 @@ export default function AddPetModal({ onSaveComplete, onBack }) {
       <div className={styles.header}>
         {onBack && (
           <button onClick={onBack} className={styles.backBtn} aria-label="Volver">
-            ←
+            <ChevronLeft size={20} />
           </button>
         )}
         <h1 className={styles.title}>Registrar Mascota</h1>
@@ -133,7 +134,7 @@ export default function AddPetModal({ onSaveComplete, onBack }) {
             {croppedPreviewUrl ? (
               <img src={croppedPreviewUrl} alt="Vista previa" className={styles.imagePreview} />
             ) : (
-              <span className={styles.uploadIcon}>📸</span>
+              <Camera className={styles.uploadIcon} size={32} />
             )}
           </div>
           <button 
@@ -176,9 +177,9 @@ export default function AddPetModal({ onSaveComplete, onBack }) {
               onChange={handleChange}
               className={styles.select}
             >
-              <option value="Dog">🐶 Perro</option>
-              <option value="Cat">🐱 Gato</option>
-              <option value="Other">🐾 Otro</option>
+              <option value="Dog">Perro</option>
+              <option value="Cat">Gato</option>
+              <option value="Other">Otro</option>
             </select>
           </div>
 

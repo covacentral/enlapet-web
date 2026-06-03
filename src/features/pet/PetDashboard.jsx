@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../../core/firebase/firebase';
 import { useAuth } from '../auth/AuthContext';
+import { Settings, LogOut, AlertTriangle, Plus, Copy, Notebook, Heart } from 'lucide-react';
 import styles from './PetDashboard.module.css';
 
 export default function PetDashboard({ onNavigateToOwnerConfig, onNavigateToPetDetail, onNavigateToAddPet }) {
@@ -44,7 +45,7 @@ export default function PetDashboard({ onNavigateToOwnerConfig, onNavigateToPetD
       {/* Cabecera */}
       <div className={styles.header}>
         <div className={styles.welcomeSection}>
-          <p>Hola 👋</p>
+          <p className={styles.greeting}>Bienvenido,</p>
           <h1>{ownerData?.name || user?.displayName || 'Dueño'}</h1>
         </div>
         <div className={styles.headerActions}>
@@ -54,7 +55,7 @@ export default function PetDashboard({ onNavigateToOwnerConfig, onNavigateToPetD
             title="Configurar Datos de Contacto"
             aria-label="Configurar Datos de Contacto"
           >
-            ⚙️
+            <Settings size={20} />
           </button>
           <button 
             onClick={logout} 
@@ -62,7 +63,7 @@ export default function PetDashboard({ onNavigateToOwnerConfig, onNavigateToPetD
             title="Cerrar Sesión"
             aria-label="Cerrar Sesión"
           >
-            🚪
+            <LogOut size={20} />
           </button>
         </div>
       </div>
@@ -70,14 +71,17 @@ export default function PetDashboard({ onNavigateToOwnerConfig, onNavigateToPetD
       {/* Alerta de Configuración Incompleta */}
       {!isProfileComplete && (
         <div className={styles.setupWarning}>
+          <div className={styles.setupWarningIconContainer}>
+            <AlertTriangle className={styles.setupWarningIcon} size={24} />
+          </div>
           <div className={styles.setupWarningText}>
-            <h3>⚠️ Ficha de contacto incompleta</h3>
+            <h3>Contacto Incompleto</h3>
             <p>
-              Para que el collar NFC funcione y puedan contactarte si tu mascota se extravía, debes rellenar tu número de celular y ciudad en la Ficha del Dueño.
+              Completa tu número de celular y ciudad para que puedan contactarte si tu mascota se extravía.
             </p>
           </div>
           <button onClick={onNavigateToOwnerConfig} className={styles.setupWarningBtn}>
-            Completar Ficha
+            Completar
           </button>
         </div>
       )}
@@ -90,11 +94,14 @@ export default function PetDashboard({ onNavigateToOwnerConfig, onNavigateToPetD
         <div className={styles.loadingSpinner}>Cargando mascotas...</div>
       ) : pets.length === 0 ? (
         <div className={styles.emptyState}>
-          <span className={styles.emptyIcon}>🐶</span>
-          <h3>Aún no tienes mascotas registradas</h3>
-          <p>Registra tu primera mascota para generar su collar de identificación.</p>
+          <div className={styles.emptyIconBg}>
+            <Heart className={styles.emptyIcon} size={48} />
+          </div>
+          <h3>Sin mascotas registradas</h3>
+          <p>Registra tu mascota para generar su ficha y collar inteligente NFC.</p>
           <button onClick={onNavigateToAddPet} className={styles.btnPrimary}>
-            Registrar Mascota
+            <Plus size={18} />
+            <span>Registrar Mascota</span>
           </button>
         </div>
       ) : (
@@ -109,7 +116,7 @@ export default function PetDashboard({ onNavigateToOwnerConfig, onNavigateToPetD
               <div className={styles.petInfo}>
                 <span className={styles.petName}>{pet.name}</span>
                 <span className={styles.petDetails}>
-                  {pet.species === 'Dog' ? '🐶 Perro' : '🐱 Gato'} • {pet.breed || 'Sin Raza'}
+                  {pet.species === 'Dog' ? 'Perro' : 'Gato'} • {pet.breed || 'Sin Raza'}
                 </span>
                 <span className={styles.epidBadge}>EPID: {pet.epid}</span>
               </div>
@@ -117,14 +124,18 @@ export default function PetDashboard({ onNavigateToOwnerConfig, onNavigateToPetD
                 <button 
                   onClick={() => onNavigateToPetDetail(pet.id)} 
                   className={styles.viewBtn}
+                  title="Ver Diario Médico"
+                  aria-label="Ver Diario Médico"
                 >
-                  Ver Diario
+                  <Notebook size={16} />
                 </button>
                 <button 
                   onClick={() => copyNfcLink(pet.secureToken)} 
                   className={styles.nfcBtn}
+                  title="Copiar Enlace NFC"
+                  aria-label="Copiar Enlace NFC"
                 >
-                  Copiar NFC
+                  <Copy size={16} />
                 </button>
               </div>
             </div>
@@ -132,7 +143,7 @@ export default function PetDashboard({ onNavigateToOwnerConfig, onNavigateToPetD
 
           {/* Botón flotante para añadir en dispositivos móviles */}
           <button onClick={onNavigateToAddPet} className={styles.btnAddFloating} aria-label="Agregar Mascota">
-            +
+            <Plus size={24} />
           </button>
         </div>
       )}

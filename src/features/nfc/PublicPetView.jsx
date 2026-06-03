@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../core/firebase/firebase';
 import styles from './PublicPetView.module.css';
+import { Phone, ShieldAlert } from 'lucide-react';
 
 export default function PublicPetView({ secureToken }) {
   const [loading, setLoading] = useState(true);
@@ -79,7 +80,6 @@ export default function PublicPetView({ secureToken }) {
       </div>
     );
   }
-
   // Generar link de WhatsApp
   const phone = owner?.contact?.phone || '';
   const cleanPhone = phone.replace(/[^0-9+]/g, '');
@@ -89,6 +89,9 @@ export default function PublicPetView({ secureToken }) {
 
   return (
     <div className={styles.container}>
+      <div className={styles.circle1}></div>
+      <div className={styles.circle2}></div>
+
       <div className={styles.card}>
         {/* Foto de la Mascota (80vw de ancho y proporcional 1:1) */}
         <div className={styles.petPhotoContainer}>
@@ -114,15 +117,14 @@ export default function PublicPetView({ secureToken }) {
             className={styles.btnWhatsapp}
             aria-label="Contactar al dueño por WhatsApp"
           >
-            <svg className={styles.whatsappIcon} viewBox="0 0 24 24">
-              <path d="M12.031 6.172c-2.078 0-3.761 1.684-3.761 3.761 0 .724.208 1.4.564 1.979l-.6 2.199 2.253-.591c.477.29 1.033.459 1.626.459 2.078 0 3.761-1.684 3.761-3.761 0-2.078-1.684-3.761-3.761-3.761zm3.896 5.518c-.109.284-.636.549-.877.585-.23.036-.508.066-1.503-.332-.988-.396-1.611-1.393-1.66-1.459-.048-.066-.396-.525-.396-1.007 0-.482.253-.72.343-.817.09-.096.2-.144.29-.144.09 0 .18 0 .253.006.079.006.187-.03.29.217.109.265.374.91.41.982.036.072.06.157.012.253-.048.096-.072.157-.144.241-.072.084-.157.187-.223.253-.079.072-.163.151-.066.313.096.163.434.717.934 1.163.645.572 1.187.747 1.356.831.169.084.265.072.361-.036.096-.109.422-.494.536-.663.115-.169.23-.139.386-.084.157.054.994.47 1.163.554.169.084.284.127.325.2.042.072.042.41-.066.699zM12 0C5.373 0 0 5.373 0 12c0 2.124.554 4.118 1.526 5.864L.079 23.518c-.066.241.139.47.386.422l5.772-1.424C7.942 23.488 9.907 24 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.921 0-3.722-.516-5.289-1.414l-.38-.217-3.486.86.877-3.411-.237-.378A9.957 9.957 0 012 12c0-5.514 4.486-10 10-10s10 4.486 10 10-4.486 10-10 10z"/>
-            </svg>
+            <Phone size={20} />
             <span>Contactar al Dueño</span>
           </button>
         ) : (
-          <p className={styles.ageText} style={{ fontSize: '0.85rem', color: 'red' }}>
-            Sin celular configurado por el dueño
-          </p>
+          <div className={styles.noPhoneAlert}>
+            <ShieldAlert size={20} />
+            <span>Sin contacto registrado</span>
+          </div>
         )}
       </div>
     </div>

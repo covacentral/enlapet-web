@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from './AuthContext';
+import { PawPrint } from 'lucide-react';
 import styles from './AuthPage.module.css';
 
 export default function AuthPage() {
@@ -22,13 +23,19 @@ export default function AuthPage() {
 
   return (
     <div className={styles.authContainer}>
+      <div className={styles.circle1}></div>
+      <div className={styles.circle2}></div>
+      
       <div className={styles.authCard}>
         <div className={styles.logoContainer}>
-          <span className={styles.logoBadge} role="img" aria-label="pet-logo">🐾</span>
+          <div className={styles.logoIconBg}>
+            <PawPrint className={styles.logoIcon} size={40} />
+          </div>
         </div>
+        
         <h1 className={styles.title}>EnlaPet</h1>
         <p className={styles.subtitle}>
-          Registra tus mascotas, genera su EPID único y conéctalas con el mundo a través de su collar NFC.
+          Identificación inteligente NFC para proteger a quienes más quieres.
         </p>
 
         {error && <p className={styles.errorMessage}>{error}</p>}
@@ -43,7 +50,6 @@ export default function AuthPage() {
             <span>Conectando...</span>
           ) : (
             <>
-              {/* Icono de Google Inline SVG */}
               <svg className={styles.googleIcon} viewBox="0 0 24 24" width="20" height="20">
                 <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v3.92h6.69c-.29 1.5-.14 2.66-.99 3.56l3.1 2.4c1.8-1.68 2.9-4.18 2.9-7.81z"/>
                 <path fill="#34A853" d="M12 24c3.24 0 5.97-1.08 7.96-2.91l-3.1-2.4c-.9.6-2.07.96-3.26.96-3.13 0-5.78-2.11-6.73-4.96L3.68 18.06C5.68 21.6 9.53 24 12 24z"/>
@@ -56,7 +62,7 @@ export default function AuthPage() {
         </button>
 
         <p className={styles.footerText}>
-          Al ingresar aceptas los términos de servicio y la política de tratamiento de datos de EnlaPet.
+          Tu tranquilidad, su seguridad. Al ingresar aceptas los términos de servicio.
         </p>
       </div>
     </div>
