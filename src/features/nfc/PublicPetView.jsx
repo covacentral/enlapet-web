@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { doc, getDoc, collection, getDocs, query, orderBy } from 'firebase/firestore';
+import React, { useEffect, useState } from 'react';
+import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../core/firebase/firebase';
 import styles from './PublicPetView.module.css';
 
@@ -8,12 +8,11 @@ export default function PublicPetView({ secureToken }) {
   const [error, setError] = useState('');
   const [pet, setPet] = useState(null);
   const [owner, setOwner] = useState(null);
-  const [records, setRecords] = useState([]);
 
   useEffect(() => {
     const resolveNfcToken = async () => {
       if (!secureToken) {
-        setError('Token inválido o no suministrado.');
+        setError('Token no válido.');
         setLoading(false);
         return;
       }
@@ -24,7 +23,7 @@ export default function PublicPetView({ secureToken }) {
         const mappingSnap = await getDoc(mappingRef);
 
         if (!mappingSnap.exists()) {
-          setError('El código del collar escaneado no corresponde a ninguna mascota activa.');
+          setError('El código del collar escaneado no corresponde a ninguna mascota.');
           setLoading(false);
           return;
         }
@@ -36,14 +35,14 @@ export default function PublicPetView({ secureToken }) {
         const petSnap = await getDoc(petRef);
 
         if (!petSnap.exists()) {
-          setError('No se pudo encontrar el registro de la mascota.');
+          setError('Mascota no encontrada.');
           setLoading(false);
           return;
         }
 
         setPet(petSnap.data());
 
-        // 3. Obtener ficha de contacto del dueño
+        // 3. Obtener datos del dueño (solo el teléfono para WhatsApp)
         const ownerRef = doc(db, 'users', ownerId);
         const ownerSnap = await getDoc(ownerRef);
 
@@ -51,19 +50,9 @@ export default function PublicPetView({ secureToken }) {
           setOwner(ownerSnap.data());
         }
 
-        // 4. Obtener diario médico (vacunas e historial clínico)
-        const recordsRef = collection(db, 'pets', petId, 'medical_records');
-        const q = query(recordsRef, orderBy('date', 'desc'));
-        const recordsSnap = await getDocs(q);
-        const recordsList = [];
-        recordsSnap.forEach((doc) => {
-          recordsList.push({ id: doc.id, ...doc.data() });
-        });
-        setRecords(recordsList);
-
       } catch (err) {
         console.error("Error al resolver perfil de identificación:", err);
-        setError('Ocurrió un error al cargar los datos del collar. Revisa tu señal.');
+        setError('Error al cargar la información del collar.');
       } finally {
         setLoading(false);
       }
@@ -85,7 +74,6 @@ export default function PublicPetView({ secureToken }) {
       <div className={styles.container}>
         <div className={styles.errorContainer}>
           <span className={styles.errorIcon}>🔍</span>
-          <h2 className={styles.petName}>No Encontrado</h2>
           <p className={styles.errorText}>{error}</p>
         </div>
       </div>
@@ -94,7 +82,7 @@ export default function PublicPetView({ secureToken }) {
 
   // Generar link de WhatsApp
   const phone = owner?.contact?.phone || '';
-  const cleanPhone = phone.replace(/[^0-9+]/g, ''); // Limpiar caracteres innecesarios
+  const cleanPhone = phone.replace(/[^0-9+]/g, '');
   const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(
     `Hola! He escaneado el collar de identificación EnlaPet y encontré a tu mascota ${pet?.name}. ¿Se encuentra extraviada?`
   )}`;
@@ -102,7 +90,7 @@ export default function PublicPetView({ secureToken }) {
   return (
     <div className={styles.container}>
       <div className={styles.card}>
-        {/* Foto de la Mascota */}
+        {/* Foto de la Mascota (80vw de ancho y proporcional 1:1) */}
         <div className={styles.petPhotoContainer}>
           <img 
             src={pet?.photoUrl || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="150" height="150" fill="%23ccc"><path d="M12 14c-1.66 0-3 1.34-3 3 0 2 2 3 3 3s3-1 3-3c0-1.66-1.34-3-3-3zm-4.5-3c-.83 0-1.5-.67-1.5-1.5S6.67 8 7.5 8s1.5.67 1.5 1.5S8.33 11 7.5 11zm9 0c-.83 0-1.5-.67-1.5-1.5S15.67 8 16.5 8s1.5.67 1.5 1.5S17.33 11 16.5 11zm-5.25-3.5c-.69 0-1.25-.56-1.25-1.25S10.81 5 11.25 5s1.25.56 1.25 1.25-.56 1.25-1.25 1.25zm2.5 0c-.69 0-1.25-.56-1.25-1.25S13.31 5 13.75 5s1.25.56 1.25 1.25-.56 1.25-1.25 1.25z"/></svg>'} 
@@ -111,84 +99,16 @@ export default function PublicPetView({ secureToken }) {
           />
         </div>
 
-        {/* Nombre e Info Básica */}
+        {/* Nombre y Edad */}
         <div className={styles.petMainInfo}>
           <h1 className={styles.petName}>{pet?.name}</h1>
-          <span className={styles.breedText}>
-            {pet?.species === 'Dog' ? '🐶 Perro' : '🐱 Gato'} • {pet?.breed || 'Sin Raza'}
+          <span className={styles.ageText}>
+            {pet?.age ? `${pet.age} años de edad` : 'Cachorro'}
           </span>
-          <div>
-            <span className={styles.epidBadge}>ID: {pet?.epid}</span>
-          </div>
-        </div>
-
-        <div className={styles.divider} />
-
-        {/* Detalles de la Mascota */}
-        <div className={styles.detailsGrid}>
-          <div className={styles.detailItem}>
-            <span className={styles.detailLabel}>Edad</span>
-            <span className={styles.detailValue}>
-              {pet?.age ? `${pet.age} años` : 'Cachorro'}
-            </span>
-          </div>
-          <div className={styles.detailItem}>
-            <span className={styles.detailLabel}>Género</span>
-            <span className={styles.detailValue}>
-              {pet?.gender === 'Male' ? 'Macho' : 'Hembra'}
-            </span>
-          </div>
-        </div>
-
-        {/* Datos de Contacto del Dueño */}
-        {owner?.contact?.phone ? (
-          <div className={styles.ownerCard}>
-            <h3 className={styles.ownerTitle}>📍 Ubicación de Residencia</h3>
-            <p className={styles.ownerLocation}>
-              {owner.contact.city}, {owner.contact.neighborhood || 'Barrio no especificado'} ({owner.contact.country})
-            </p>
-          </div>
-        ) : (
-          <div className={styles.ownerCard} style={{ backgroundColor: 'hsl(35, 100%, 97%)', borderColor: 'hsl(40, 100%, 80%)' }}>
-            <h3 className={styles.ownerTitle} style={{ color: 'hsl(25, 90%, 25%)' }}>⚠️ Sin Datos de Contacto</h3>
-            <p className={styles.ownerLocation} style={{ color: 'hsl(25, 60%, 35%)' }}>
-              El dueño no ha completado su información de contacto.
-            </p>
-          </div>
-        )}
-
-        {/* Historial Médico y de Vacunación */}
-        <div className={styles.recordsSection}>
-          <h3 className={styles.recordsTitle}>📋 Diario de Salud</h3>
-          {records.length === 0 ? (
-            <div className={styles.emptyRecords}>
-              No hay vacunas o notas clínicas registradas aún.
-            </div>
-          ) : (
-            <div className={styles.recordsList}>
-              {records.map((record) => (
-                <div key={record.id} className={styles.recordCard}>
-                  <span className={styles.recordIcon}>
-                    {record.type === 'vaccine' ? '💉' : '📝'}
-                  </span>
-                  <div className={styles.recordContent}>
-                    <div className={styles.recordHeader}>
-                      <span className={styles.recordTitle}>{record.title}</span>
-                      <span className={styles.recordDate}>{record.date}</span>
-                    </div>
-                    <span className={`${styles.recordBadge} ${record.type === 'vaccine' ? styles.badgeVaccine : styles.badgeHistory}`}>
-                      {record.type === 'vaccine' ? 'Vacuna' : 'Clínico'}
-                    </span>
-                    {record.notes && <p className={styles.recordNotes}>{record.notes}</p>}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
 
         {/* Botón de Contacto por WhatsApp */}
-        {owner?.contact?.phone && (
+        {owner?.contact?.phone ? (
           <button 
             onClick={() => window.open(whatsappUrl, '_blank')} 
             className={styles.btnWhatsapp}
@@ -199,6 +119,10 @@ export default function PublicPetView({ secureToken }) {
             </svg>
             <span>Contactar al Dueño</span>
           </button>
+        ) : (
+          <p className={styles.ageText} style={{ fontSize: '0.85rem', color: 'red' }}>
+            Sin celular configurado por el dueño
+          </p>
         )}
       </div>
     </div>
