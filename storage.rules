@@ -2,10 +2,10 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
     match /pets/{imageId} {
-      // Solo usuarios autenticados pueden subir/borrar imágenes, y el nombre del archivo debe iniciar con su UID
-      allow write: if request.auth != null && imageId.startsWith(request.auth.uid);
+      // Permitir la subida y eliminación si el usuario está autenticado
+      allow write: if request.auth != null;
       
-      // La lectura es pública para que cualquiera que escanee el collar NFC pueda ver la foto de la mascota
+      // La lectura es pública para que cualquiera que escanee el collar NFC vea la foto
       allow read: if true;
     }
   }
