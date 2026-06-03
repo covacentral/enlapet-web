@@ -18,22 +18,19 @@ service cloud.firestore {
 
     // 2. Colección de Mascotas (Pets)
     match /pets/{petId} {
-      // El dueño puede leer y escribir sus mascotas
-      allow read, write: if isAuthenticated() && resource.data.ownerId == request.auth.uid;
+      // El dueño puede leer, actualizar o borrar sus mascotas
+      allow read, update, delete: if isAuthenticated() && resource.data.ownerId == request.auth.uid;
       
       // Permitir la creación de mascotas si se asocian correctamente al creador
       allow create: if isAuthenticated() && request.resource.data.ownerId == request.auth.uid;
       
       // Acceso público de lectura: solo a través del token seguro (no por listado general)
-      // Nota: El cliente obtiene primero la mascota resolviendo el token seguro.
       allow get: if true; 
-      allow list: if isAuthenticated() && resource.data.ownerId == request.auth.uid;
 
       // Subcolección de historial clínico
       match /medical_records/{recordId} {
-        allow read, write: if isAuthenticated() && get(/databases/$(database)/documents/pets/$(petId)).data.ownerId == request.auth.uid;
-        
-        // Acceso público para ver el historial resumido si escanean el collar
+        allow read, update, delete: if isAuthenticated() && get(/databases/$(database)/documents/pets/$(petId)).data.ownerId == request.auth.uid;
+        allow create: if isAuthenticated() && get(/databases/$(database)/documents/pets/$(petId)).data.ownerId == request.auth.uid;
         allow get: if true;
       }
     }
