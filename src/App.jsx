@@ -62,15 +62,25 @@ function AppContent() {
     case 'add-pet':
       return (
         <AddPetModal 
-          onSaveComplete={() => setView('dashboard')} 
-          onBack={() => setView('dashboard')} 
+          onSaveComplete={() => {
+            setSelectedPetId(null);
+            setView('dashboard');
+          }} 
+          onBack={() => {
+            setSelectedPetId(null);
+            setView('dashboard');
+          }} 
+          petId={selectedPetId}
         />
       );
     case 'pet-journal':
       return (
         <PetJournal 
           petId={selectedPetId} 
-          onBack={() => setView('dashboard')} 
+          onBack={() => {
+            setSelectedPetId(null);
+            setView('dashboard');
+          }} 
         />
       );
     case 'dashboard':
@@ -78,10 +88,17 @@ function AppContent() {
       return (
         <PetDashboard 
           onNavigateToOwnerConfig={() => setView('owner-config')}
-          onNavigateToAddPet={() => setView('add-pet')}
+          onNavigateToAddPet={() => {
+            setSelectedPetId(null);
+            setView('add-pet');
+          }}
           onNavigateToPetDetail={(petId) => {
             setSelectedPetId(petId);
             setView('pet-journal');
+          }}
+          onNavigateToEditPet={(petId) => {
+            setSelectedPetId(petId);
+            setView('add-pet');
           }}
         />
       );

@@ -6,7 +6,7 @@ import { ChevronLeft, Info } from 'lucide-react';
 import styles from './OwnerConfig.module.css';
 
 export default function OwnerConfig({ onSaveComplete, onBack }) {
-  const { user, ownerData, refreshOwnerData } = useAuth();
+  const { user, ownerData, refreshOwnerData, logout } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     country: '',
@@ -141,6 +141,17 @@ export default function OwnerConfig({ onSaveComplete, onBack }) {
           {loading ? 'Guardando...' : 'Guardar Información'}
         </button>
       </form>
+
+      <button 
+        type="button" 
+        onClick={() => {
+          logout();
+          if (onSaveComplete) onSaveComplete();
+        }} 
+        className={styles.btnLogout}
+      >
+        Cerrar Sesión
+      </button>
     </div>
   );
 }

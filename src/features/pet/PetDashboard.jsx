@@ -1,16 +1,23 @@
 import React, { useEffect, useState } from 'react';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, getDocs } from 'firebase/firestore';
 import { db } from '../../core/firebase/firebase';
 import { useAuth } from '../auth/AuthContext';
-import { Settings, LogOut, AlertTriangle, Plus, Copy, Notebook, Heart } from 'lucide-react';
+import { Settings, LogOut, AlertTriangle, Plus, Copy, Notebook, Heart, Edit2, Search } from 'lucide-react';
 import styles from './PetDashboard.module.css';
 
-export default function PetDashboard({ onNavigateToOwnerConfig, onNavigateToPetDetail, onNavigateToAddPet }) {
+export default function PetDashboard({ onNavigateToOwnerConfig, onNavigateToPetDetail, onNavigateToAddPet, onNavigateToEditPet }) {
   const { user, ownerData, logout, isProfileComplete } = useAuth();
   const [pets, setPets] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Escuchador en tiempo real de mascotas
+  // Estados de Administrador Maestro
+  const [searchInput, setSearchInput] = useState('');
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [foundPet, setFoundPet] = useState(null);
+
+  const isAdmin = user?.email === 'covacentral@gmail.com' || user?.email?.includes('admin');
+
+  // Escuchador en tiempo real de mascotas del dueño
   useEffect(() => {
     if (!user) return;
     const petsRef = collection(db, 'pets');
@@ -30,6 +37,32 @@ export default function PetDashboard({ onNavigateToOwnerConfig, onNavigateToPetD
 
     return () => unsubscribe();
   }, [user]);
+
+  // Búsqueda maestra por EPID para Administrador
+  const handleAdminSearch = async (e) => {
+    e.preventDefault();
+    if (!searchInput.trim()) return;
+
+    setSearchLoading(true);
+    setFoundPet(null);
+    try {
+      const petsRef = collection(db, 'pets');
+      const q = query(petsRef, where('epid', '==', searchInput.toUpperCase().trim()));
+      const snap = await getDocs(q);
+
+      if (!snap.empty) {
+        const doc = snap.docs[0];
+        setFoundPet({ id: doc.id, ...doc.data() });
+      } else {
+        alert("No se encontró ninguna mascota con ese EPID.");
+      }
+    } catch (err) {
+      console.error("Error en búsqueda administrativa:", err);
+      alert("Error al buscar el EPID.");
+    } finally {
+      setSearchLoading(false);
+    }
+  };
 
   const copyNfcLink = (secureToken) => {
     const link = `${window.location.origin}/p/${secureToken}`;
@@ -57,19 +90,49 @@ export default function PetDashboard({ onNavigateToOwnerConfig, onNavigateToPetD
           >
             <Settings size={20} />
           </button>
-          <button 
-            onClick={logout} 
-            className={styles.actionBtn}
-            title="Cerrar Sesión"
-            aria-label="Cerrar Sesión"
-          >
-            <LogOut size={20} />
-          </button>
         </div>
       </div>
 
-      {/* Alerta de Configuración Incompleta */}
-      {!isProfileComplete && (
+      {/* Panel Administrador Maestro */}
+      {isAdmin && (
+        <div className={styles.adminPanel}>
+          <h2 className={styles.sectionTitle}>Buscador EPID Maestro</h2>
+          <form onSubmit={handleAdminSearch} className={styles.adminSearchForm}>
+            <input 
+              type="text"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              placeholder="Escribe el EPID de la mascota (ej: ELP-XXXXXX)"
+              className={styles.adminSearchInput}
+            />
+            <button type="submit" disabled={searchLoading} className={styles.adminSearchBtn}>
+              <Search size={18} />
+            </button>
+          </form>
+
+          {/* Tarjeta de Mascota Encontrada (Solo foto y botón de copiar NFC) */}
+          {foundPet && (
+            <div className={styles.foundPetCard}>
+              <img 
+                src={foundPet.photoUrl || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="150" height="150" fill="%23ccc"><path d="M12 14c-1.66 0-3 1.34-3 3 0 2 2 3 3 3s3-1 3-3c0-1.66-1.34-3-3-3zm-4.5-3c-.83 0-1.5-.67-1.5-1.5S6.67 8 7.5 8s1.5.67 1.5 1.5S8.33 11 7.5 11zm9 0c-.83 0-1.5-.67-1.5-1.5S15.67 8 16.5 8s1.5.67 1.5 1.5S17.33 11 16.5 11zm-5.25-3.5c-.69 0-1.25-.56-1.25-1.25S10.81 5 11.25 5s1.25.56 1.25 1.25-.56 1.25-1.25 1.25zm2.5 0c-.69 0-1.25-.56-1.25-1.25S13.31 5 13.75 5s1.25.56 1.25 1.25-.56 1.25-1.25 1.25z"/></svg>'} 
+                alt={foundPet.name} 
+                className={styles.foundPetPhoto}
+              />
+              <button 
+                onClick={() => copyNfcLink(foundPet.secureToken)} 
+                className={styles.adminCopyBtn}
+              >
+                <Copy size={16} />
+                <span>Copiar URL NFC de {foundPet.name}</span>
+              </button>
+            </div>
+          )}
+          <div className={styles.divider} />
+        </div>
+      )}
+
+      {/* Alerta de Configuración Incompleta (Para usuarios estándar) */}
+      {!isProfileComplete && !isAdmin && (
         <div className={styles.setupWarning}>
           <div className={styles.setupWarningIconContainer}>
             <AlertTriangle className={styles.setupWarningIcon} size={24} />
@@ -112,6 +175,9 @@ export default function PetDashboard({ onNavigateToOwnerConfig, onNavigateToPetD
                 src={pet.photoUrl || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="150" height="150" fill="%23ccc"><path d="M12 14c-1.66 0-3 1.34-3 3 0 2 2 3 3 3s3-1 3-3c0-1.66-1.34-3-3-3zm-4.5-3c-.83 0-1.5-.67-1.5-1.5S6.67 8 7.5 8s1.5.67 1.5 1.5S8.33 11 7.5 11zm9 0c-.83 0-1.5-.67-1.5-1.5S15.67 8 16.5 8s1.5.67 1.5 1.5S17.33 11 16.5 11zm-5.25-3.5c-.69 0-1.25-.56-1.25-1.25S10.81 5 11.25 5s1.25.56 1.25 1.25-.56 1.25-1.25 1.25zm2.5 0c-.69 0-1.25-.56-1.25-1.25S13.31 5 13.75 5s1.25.56 1.25 1.25-.56 1.25-1.25 1.25z"/></svg>'} 
                 alt={pet.name} 
                 className={styles.petPhoto}
+                onClick={() => onNavigateToEditPet(pet.id)}
+                style={{ cursor: 'pointer' }}
+                title="Hacer clic para editar foto"
               />
               <div className={styles.petInfo}>
                 <span className={styles.petName}>{pet.name}</span>
@@ -130,12 +196,12 @@ export default function PetDashboard({ onNavigateToOwnerConfig, onNavigateToPetD
                   <Notebook size={16} />
                 </button>
                 <button 
-                  onClick={() => copyNfcLink(pet.secureToken)} 
-                  className={styles.nfcBtn}
-                  title="Copiar Enlace NFC"
-                  aria-label="Copiar Enlace NFC"
+                  onClick={() => onNavigateToEditPet(pet.id)} 
+                  className={styles.editBtn}
+                  title="Editar Mascota"
+                  aria-label="Editar Mascota"
                 >
-                  <Copy size={16} />
+                  <Edit2 size={16} />
                 </button>
               </div>
             </div>

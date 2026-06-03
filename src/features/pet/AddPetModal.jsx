@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { collection, addDoc, doc, setDoc } from 'firebase/firestore';
+import React, { useState, useRef, useEffect } from 'react';
+import { collection, addDoc, doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../../core/firebase/firebase';
 import { useAuth } from '../auth/AuthContext';
@@ -8,11 +8,12 @@ import ImageCropper from '../../shared/components/ImageCropper';
 import { ChevronLeft, Camera } from 'lucide-react';
 import styles from './AddPetModal.module.css';
 
-export default function AddPetModal({ onSaveComplete, onBack }) {
+export default function AddPetModal({ onSaveComplete, onBack, petId }) {
   const { user } = useAuth();
   const fileInputRef = useRef(null);
   
   const [loading, setLoading] = useState(false);
+  const [existingPet, setExistingPet] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     species: 'Dog',
@@ -25,6 +26,34 @@ export default function AddPetModal({ onSaveComplete, onBack }) {
   const [selectedImageSrc, setSelectedImageSrc] = useState(null);
   const [croppedBlob, setCroppedBlob] = useState(null);
   const [croppedPreviewUrl, setCroppedPreviewUrl] = useState('');
+
+  // 0. Cargar datos si estamos en modo edición
+  useEffect(() => {
+    if (!petId) return;
+    const fetchPetData = async () => {
+      try {
+        const petRef = doc(db, 'pets', petId);
+        const petSnap = await getDoc(petRef);
+        if (petSnap.exists()) {
+          const data = petSnap.data();
+          setExistingPet(data);
+          setFormData({
+            name: data.name || '',
+            species: data.species || 'Dog',
+            breed: data.breed || '',
+            age: data.age || '',
+            gender: data.gender || 'Male'
+          });
+          if (data.photoUrl) {
+            setCroppedPreviewUrl(data.photoUrl);
+          }
+        }
+      } catch (err) {
+        console.error("Error al cargar mascota para editar:", err);
+      }
+    };
+    fetchPetData();
+  }, [petId]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -59,7 +88,7 @@ export default function AddPetModal({ onSaveComplete, onBack }) {
 
     setLoading(true);
     try {
-      let photoUrl = '';
+      let photoUrl = existingPet?.photoUrl || '';
 
       // 1. Subir la foto recortada a Firebase Storage si existe
       if (croppedBlob) {
@@ -69,38 +98,52 @@ export default function AddPetModal({ onSaveComplete, onBack }) {
         photoUrl = await getDownloadURL(storageRef);
       }
 
-      // 2. Generar EPID y token de escaneo seguro
-      const epid = generateEPID();
-      const secureToken = generateSecureToken();
+      if (petId) {
+        // Modo Edición
+        const petRef = doc(db, 'pets', petId);
+        await updateDoc(petRef, {
+          name: formData.name,
+          species: formData.species,
+          breed: formData.breed,
+          age: Number(formData.age) || 0,
+          gender: formData.gender,
+          photoUrl,
+          updatedAt: new Date().toISOString()
+        });
+      } else {
+        // Modo Registro
+        const epid = generateEPID();
+        const secureToken = generateSecureToken();
 
-      const petData = {
-        ownerId: user.uid,
-        epid,
-        secureToken,
-        name: formData.name,
-        species: formData.species,
-        breed: formData.breed,
-        age: Number(formData.age) || 0,
-        gender: formData.gender,
-        photoUrl,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
+        const petData = {
+          ownerId: user.uid,
+          epid,
+          secureToken,
+          name: formData.name,
+          species: formData.species,
+          breed: formData.breed,
+          age: Number(formData.age) || 0,
+          gender: formData.gender,
+          photoUrl,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
 
-      // 3. Guardar documento de mascota en Firestore
-      const petsCollectionRef = collection(db, 'pets');
-      const petDocRef = await addDoc(petsCollectionRef, petData);
+        // Guardar en base de datos
+        const petsCollectionRef = collection(db, 'pets');
+        const petDocRef = await addDoc(petsCollectionRef, petData);
 
-      // 4. Crear el mapeo de NFC seguro (secureToken -> petId)
-      const mappingRef = doc(db, 'nfc_mappings', secureToken);
-      await setDoc(mappingRef, {
-        petId: petDocRef.id,
-        ownerId: user.uid
-      });
+        // Crear mapeo NFC
+        const mappingRef = doc(db, 'nfc_mappings', secureToken);
+        await setDoc(mappingRef, {
+          petId: petDocRef.id,
+          ownerId: user.uid
+        });
+      }
 
       if (onSaveComplete) onSaveComplete();
     } catch (error) {
-      console.error("Error al registrar mascota:", error);
+      console.error("Error al guardar mascota:", error);
       alert("Error al guardar los datos. Revisa tu conexión.");
     } finally {
       setLoading(false);
