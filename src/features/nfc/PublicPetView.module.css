@@ -1,0 +1,185 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, hsl(200, 100%, 96%) 0%, hsl(220, 100%, 90%) 100%);
+  font-family: 'Outfit', sans-serif;
+  padding: 24px 16px;
+}
+
+.card {
+  width: 100%;
+  max-width: 400px;
+  background-color: white;
+  border-radius: 28px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  margin-top: 40px;
+}
+
+.petPhotoContainer {
+  position: absolute;
+  top: -60px;
+  width: 120px;
+  height: 120px;
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  background-color: white;
+  border: 4px solid white;
+}
+
+.petPhoto {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.petMainInfo {
+  margin-top: 70px;
+  width: 100%;
+}
+
+.petName {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: hsl(220, 40%, 15%);
+  margin-bottom: 4px;
+}
+
+.breedText {
+  font-size: 0.9rem;
+  color: hsl(220, 10%, 50%);
+  font-weight: 500;
+}
+
+.epidBadge {
+  display: inline-block;
+  margin-top: 8px;
+  background-color: hsl(200, 100%, 96%);
+  color: hsl(200, 100%, 35%);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-family: monospace;
+}
+
+.divider {
+  width: 100%;
+  height: 1px;
+  background-color: hsl(220, 20%, 94%);
+  margin: 20px 0;
+}
+
+.detailsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.detailItem {
+  background-color: hsl(220, 30%, 98%);
+  border-radius: 16px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detailLabel {
+  font-size: 0.75rem;
+  color: hsl(220, 10%, 60%);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.detailValue {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: hsl(220, 30%, 25%);
+}
+
+.ownerCard {
+  background-color: hsl(150, 100%, 97%);
+  border: 1px dashed hsl(150, 80%, 80%);
+  border-radius: 20px;
+  padding: 16px;
+  width: 100%;
+  margin-bottom: 24px;
+  text-align: left;
+}
+
+.ownerTitle {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: hsl(150, 90%, 20%);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.ownerLocation {
+  font-size: 0.9rem;
+  color: hsl(150, 80%, 25%);
+  font-weight: 500;
+}
+
+.btnWhatsapp {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px;
+  background-color: #25D366;
+  color: white;
+  border: none;
+  border-radius: 18px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(37, 211, 102, 0.3);
+  transition: transform 0.1s;
+}
+
+.btnWhatsapp:active {
+  transform: scale(0.98);
+}
+
+.whatsappIcon {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+}
+
+.loadingSpinner {
+  color: hsl(220, 30%, 25%);
+  font-weight: 600;
+  margin-top: 100px;
+}
+
+.errorContainer {
+  text-align: center;
+  max-width: 320px;
+  margin-top: 100px;
+}
+
+.errorIcon {
+  font-size: 3rem;
+  margin-bottom: 12px;
+}
+
+.errorText {
+  color: hsl(220, 10%, 40%);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}

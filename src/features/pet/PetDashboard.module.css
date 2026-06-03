@@ -1,0 +1,250 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: hsl(220, 30%, 98%);
+  font-family: 'Outfit', sans-serif;
+  padding: 16px;
+  padding-bottom: 80px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  margin-bottom: 24px;
+}
+
+.welcomeSection h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: hsl(220, 40%, 15%);
+}
+
+.welcomeSection p {
+  font-size: 0.85rem;
+  color: hsl(220, 10%, 50%);
+  margin-top: 2px;
+}
+
+.headerActions {
+  display: flex;
+  gap: 8px;
+}
+
+.actionBtn {
+  background: white;
+  border: 1px solid hsl(220, 30%, 90%);
+  padding: 10px;
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  transition: background-color 0.2s;
+}
+
+.actionBtn:hover {
+  background-color: hsl(220, 30%, 96%);
+}
+
+.setupWarning {
+  background: linear-gradient(135deg, hsl(35, 100%, 96%) 0%, hsl(45, 100%, 92%) 100%);
+  border: 1px solid hsl(40, 100%, 80%);
+  border-radius: 20px;
+  padding: 16px;
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: slideDown 0.4s ease-out;
+}
+
+.setupWarningText h3 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: hsl(25, 90%, 25%);
+}
+
+.setupWarningText p {
+  font-size: 0.85rem;
+  color: hsl(25, 60%, 35%);
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+.setupWarningBtn {
+  align-self: flex-start;
+  background-color: hsl(25, 95%, 45%);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sectionTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: hsl(220, 30%, 25%);
+  margin-bottom: 16px;
+}
+
+.petsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.petCard {
+  background: white;
+  border-radius: 20px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
+  border: 1px solid hsl(220, 30%, 95%);
+  position: relative;
+  transition: transform 0.2s;
+}
+
+.petCard:active {
+  transform: scale(0.98);
+}
+
+.petPhoto {
+  width: 80px;
+  height: 80px;
+  border-radius: 16px;
+  object-fit: cover;
+  background-color: hsl(220, 20%, 90%);
+}
+
+.petInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.petName {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: hsl(220, 40%, 15%);
+}
+
+.petDetails {
+  font-size: 0.8rem;
+  color: hsl(220, 10%, 55%);
+}
+
+.epidBadge {
+  align-self: flex-start;
+  background-color: hsl(220, 30%, 95%);
+  color: hsl(220, 30%, 35%);
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-family: monospace;
+}
+
+.petCardActions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.viewBtn {
+  background-color: hsl(200, 100%, 95%);
+  color: hsl(200, 95%, 40%);
+  border: none;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+}
+
+.nfcBtn {
+  background-color: hsl(150, 100%, 95%);
+  color: hsl(150, 95%, 30%);
+  border: none;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+}
+
+.emptyState {
+  background: white;
+  border-radius: 24px;
+  padding: 40px 24px;
+  text-align: center;
+  border: 1px dashed hsl(220, 20%, 85%);
+  color: hsl(220, 10%, 50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.emptyIcon {
+  font-size: 3rem;
+}
+
+.btnPrimary {
+  background: linear-gradient(135deg, hsl(200, 100%, 45%), hsl(220, 100%, 55%));
+  color: white;
+  border: none;
+  padding: 16px 24px;
+  border-radius: 16px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 150, 255, 0.2);
+  transition: transform 0.1s;
+}
+
+.btnPrimary:active {
+  transform: scale(0.98);
+}
+
+.btnAddFloating {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, hsl(200, 100%, 45%), hsl(220, 100%, 55%));
+  color: white;
+  border: none;
+  font-size: 1.5rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(0, 150, 255, 0.4);
+  cursor: pointer;
+  z-index: 100;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

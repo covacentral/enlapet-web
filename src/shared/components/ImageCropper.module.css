@@ -1,0 +1,137 @@
+.cropperOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+  backdrop-filter: blur(8px);
+}
+
+.cropperCard {
+  background-color: hsl(0, 0%, 100%);
+  border-radius: 24px;
+  width: 100%;
+  max-width: 450px;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px;
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: hsl(220, 30%, 15%);
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  font-size: 0.85rem;
+  color: hsl(220, 10%, 50%);
+  margin-bottom: 20px;
+}
+
+.canvasContainer {
+  position: relative;
+  width: 280px;
+  height: 280px;
+  border-radius: 16px;
+  overflow: hidden;
+  background-color: hsl(0, 0%, 95%);
+  border: 2px dashed hsl(220, 20%, 80%);
+  cursor: move;
+  touch-action: none;
+}
+
+.canvasElement {
+  width: 100%;
+  height: 100%;
+}
+
+.cropOverlayFrame {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  border: 3px solid hsl(200, 100%, 50%);
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+}
+
+.controlGroup {
+  width: 100%;
+  margin: 24px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sliderLabel {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: hsl(220, 20%, 30%);
+}
+
+.sliderInput {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background-color: hsl(220, 20%, 90%);
+  outline: none;
+  accent-color: hsl(200, 100%, 50%);
+  cursor: pointer;
+}
+
+.actionGroup {
+  display: flex;
+  width: 100%;
+  gap: 12px;
+}
+
+.btnCancel {
+  flex: 1;
+  padding: 12px;
+  background-color: hsl(220, 20%, 95%);
+  color: hsl(220, 20%, 30%);
+  border: none;
+  border-radius: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btnCancel:hover {
+  background-color: hsl(220, 20%, 90%);
+}
+
+.btnConfirm {
+  flex: 1;
+  padding: 12px;
+  background: linear-gradient(135deg, hsl(200, 100%, 45%), hsl(220, 100%, 55%));
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.1s;
+}
+
+.btnConfirm:hover {
+  opacity: 0.95;
+}
+
+.btnConfirm:active {
+  transform: scale(0.98);
+}
