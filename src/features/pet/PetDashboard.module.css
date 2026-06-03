@@ -130,17 +130,24 @@
   flex-direction: column;
   gap: 4px;
   flex: 1;
+  min-width: 0;
 }
 
 .petName {
   font-size: 1.1rem;
   font-weight: 700;
   color: hsl(220, 40%, 15%);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .petDetails {
   font-size: 0.8rem;
   color: hsl(220, 10%, 55%);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .epidBadge {
