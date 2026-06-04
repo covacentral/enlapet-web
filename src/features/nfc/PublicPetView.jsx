@@ -116,7 +116,7 @@ export default function PublicPetView({ secureToken }) {
           {/* Nombre y Edad */}
           <div className={styles.petMainInfo}>
             <span className={styles.speciesTag}>
-              {pet?.species === 'Dog' ? '🐶 Perro' : pet?.species === 'Cat' ? '🐱 Gato' : `🐾 ${pet?.species || 'Otro'}`} &bull; {pet?.breed || 'Sin Raza'}
+              {pet?.species === 'Dog' ? '🐶 Perro' : pet?.species === 'Cat' ? '🐱 Gato' : (pet?.species || 'Otro')} &bull; {pet?.breed || 'Sin Raza'}
             </span>
             <h1 className={styles.petName}>{pet?.name}</h1>
             <span className={styles.ageBadge}>

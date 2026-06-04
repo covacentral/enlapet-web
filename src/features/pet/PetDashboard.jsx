@@ -279,7 +279,7 @@ export default function PetDashboard({ onNavigateToOwnerConfig, onNavigateToPetD
               <div className={styles.petInfo}>
                 <span className={styles.petName}>{pet.name}</span>
                 <span className={styles.petDetails}>
-                  {pet.species === 'Dog' ? 'Perro' : 'Gato'} • {pet.breed || 'Sin Raza'}
+                  {pet.species === 'Dog' ? 'Perro' : pet.species === 'Cat' ? 'Gato' : pet.species} • {pet.breed || 'Sin Raza'}
                 </span>
                 <span className={styles.epidBadge}>EPID: {pet.epid}</span>
               </div>
@@ -343,7 +343,7 @@ export default function PetDashboard({ onNavigateToOwnerConfig, onNavigateToPetD
             {/* Nombre y Edad */}
             <div className={styles.previewPetMainInfo}>
               <span className={styles.previewSpeciesTag}>
-                {previewPet.species === 'Dog' ? '🐶 Perro' : previewPet.species === 'Cat' ? '🐱 Gato' : `🐾 ${previewPet.species || 'Otro'}`} &bull; {previewPet.breed || 'Sin Raza'}
+                {previewPet.species === 'Dog' ? '🐶 Perro' : previewPet.species === 'Cat' ? '🐱 Gato' : (previewPet.species || 'Otro')} &bull; {previewPet.breed || 'Sin Raza'}
               </span>
               <h1 className={styles.previewPetName}>{previewPet.name}</h1>
               <span className={styles.previewAgeText}>
