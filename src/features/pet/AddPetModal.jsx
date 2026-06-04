@@ -9,7 +9,7 @@ import { ChevronLeft, Camera } from 'lucide-react';
 import styles from './AddPetModal.module.css';
 
 export default function AddPetModal({ onSaveComplete, onBack, petId }) {
-  const { user } = useAuth();
+  const { user, ownerData } = useAuth();
   const fileInputRef = useRef(null);
   
   const [loading, setLoading] = useState(false);
@@ -103,6 +103,8 @@ export default function AddPetModal({ onSaveComplete, onBack, petId }) {
 
       const finalSpecies = formData.species === 'Other' ? (customSpecies.trim() || 'Otro') : formData.species;
 
+      const finalPhone = ownerData?.contact?.phone || '';
+
       if (petId) {
         // Modo Edición
         const petRef = doc(db, 'pets', petId);
@@ -113,8 +115,14 @@ export default function AddPetModal({ onSaveComplete, onBack, petId }) {
           birthDate: formData.birthDate,
           gender: formData.gender,
           photoUrl,
+          ownerPhone: finalPhone,
           updatedAt: new Date().toISOString()
         });
+
+        // Limpiar el caché de la pestaña local de esta mascota si existe token seguro
+        if (existingPet?.secureToken) {
+          sessionStorage.removeItem(`nfc_cache_${existingPet.secureToken}`);
+        }
       } else {
         // Modo Registro
         const epid = generateEPID();
@@ -122,6 +130,7 @@ export default function AddPetModal({ onSaveComplete, onBack, petId }) {
 
         const petData = {
           ownerId: user.uid,
+          ownerPhone: finalPhone,
           epid,
           secureToken,
           name: formData.name,
@@ -144,6 +153,9 @@ export default function AddPetModal({ onSaveComplete, onBack, petId }) {
           petId: petDocRef.id,
           ownerId: user.uid
         });
+
+        // Limpiar el caché de la pestaña local
+        sessionStorage.removeItem(`nfc_cache_${secureToken}`);
       }
 
       if (onSaveComplete) onSaveComplete();

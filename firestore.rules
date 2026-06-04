@@ -20,7 +20,6 @@ service cloud.firestore {
     // 1. Colección de Usuarios (Dueños)
     match /users/{userId} {
       allow read, write: if isOwner(userId);
-      allow get: if true; // Permitir lectura pública de ficha individual para contactar al dueño
     }
 
     // 2. Colección de Mascotas (Pets)

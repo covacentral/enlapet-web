@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, collection, query, where, getDocs, writeBatch } from 'firebase/firestore';
 import { db } from '../../core/firebase/firebase';
 import { useAuth } from '../auth/AuthContext';
 import { ChevronLeft, Info } from 'lucide-react';
@@ -177,6 +177,7 @@ export default function OwnerConfig({ onSaveComplete, onBack }) {
 
     setLoading(true);
     try {
+      // 1. Actualizar el perfil del usuario en la colección 'users'
       const docRef = doc(db, 'users', user.uid);
       await updateDoc(docRef, {
         contact: {
@@ -188,6 +189,30 @@ export default function OwnerConfig({ onSaveComplete, onBack }) {
         },
         updatedAt: new Date().toISOString()
       });
+
+      // 2. Propagar el teléfono a todas las mascotas del usuario
+      const petsRef = collection(db, 'pets');
+      const q = query(petsRef, where('ownerId', '==', user.uid));
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        const batch = writeBatch(db);
+        querySnapshot.forEach((petDoc) => {
+          const petData = petDoc.data();
+          // Actualizar teléfono en base de datos
+          batch.update(petDoc.ref, {
+            ownerPhone: finalPhone,
+            updatedAt: new Date().toISOString()
+          });
+
+          // Limpiar el caché de la pestaña local de esta mascota si existe token seguro
+          if (petData.secureToken) {
+            sessionStorage.removeItem(`nfc_cache_${petData.secureToken}`);
+          }
+        });
+        await batch.commit();
+      }
+
       await refreshOwnerData();
       if (onSaveComplete) onSaveComplete();
     } catch (error) {

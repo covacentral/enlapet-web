@@ -9,7 +9,6 @@ export default function PublicPetView({ secureToken }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [pet, setPet] = useState(null);
-  const [owner, setOwner] = useState(null);
 
   useEffect(() => {
     const resolveNfcToken = async () => {
@@ -17,6 +16,21 @@ export default function PublicPetView({ secureToken }) {
         setError('Token no válido.');
         setLoading(false);
         return;
+      }
+
+      // Intentar cargar desde el caché local de la pestaña (sessionStorage)
+      const cached = sessionStorage.getItem(`nfc_cache_${secureToken}`);
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          if (parsed && parsed.pet) {
+            setPet(parsed.pet);
+            setLoading(false);
+            return;
+          }
+        } catch (e) {
+          console.error("Error al parsear caché local:", e);
+        }
       }
 
       try {
@@ -30,7 +44,7 @@ export default function PublicPetView({ secureToken }) {
           return;
         }
 
-        const { petId, ownerId } = mappingSnap.data();
+        const { petId } = mappingSnap.data();
 
         // 2. Obtener datos de la mascota
         const petRef = doc(db, 'pets', petId);
@@ -42,15 +56,11 @@ export default function PublicPetView({ secureToken }) {
           return;
         }
 
-        setPet(petSnap.data());
+        const petData = petSnap.data();
+        setPet(petData);
 
-        // 3. Obtener datos del dueño (solo el teléfono para WhatsApp)
-        const ownerRef = doc(db, 'users', ownerId);
-        const ownerSnap = await getDoc(ownerRef);
-
-        if (ownerSnap.exists()) {
-          setOwner(ownerSnap.data());
-        }
+        // Guardar en caché de la pestaña
+        sessionStorage.setItem(`nfc_cache_${secureToken}`, JSON.stringify({ pet: petData }));
 
       } catch (err) {
         console.error("Error al resolver perfil de identificación:", err);
@@ -82,7 +92,7 @@ export default function PublicPetView({ secureToken }) {
     );
   }
   // Generar link de WhatsApp
-  const phone = owner?.contact?.phone || '';
+  const phone = pet?.ownerPhone || '';
   const cleanPhone = phone.replace(/[^0-9+]/g, '');
   const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(
     `Hola! He escaneado el collar de identificación enlapet y encontré a tu mascota ${pet?.name}. ¿Se encuentra extraviada?`
@@ -131,7 +141,7 @@ export default function PublicPetView({ secureToken }) {
             <p className={styles.actionPrompt}>
               Si has encontrado a <strong>{pet?.name}</strong>, por favor avisa a su familia de inmediato:
             </p>
-            {owner?.contact?.phone ? (
+            {phone ? (
               <button 
                 onClick={() => window.open(whatsappUrl, '_blank')} 
                 className={styles.btnWhatsapp}
