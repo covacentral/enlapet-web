@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>enlapet - Animador de Logo para Marketing</title>
+  <title>enlapet - Grabador de Reels (1080x1920)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@800;900&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-color: #0f172a; /* Slate 900 por defecto */
+      --bg-color: #0f172a; /* Slate 900 */
     }
 
     body {
@@ -21,50 +21,84 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      background-color: var(--bg-color);
+      background-color: #1e293b; /* Fondo exterior */
       font-family: 'Outfit', sans-serif;
-      overflow: hidden;
+      overflow: auto;
+    }
+
+    /* Contenedor del Reel (Forzado a 1080x1920) */
+    .reel-canvas {
+      width: 1080px;
+      height: 1920px;
+      background-color: var(--bg-color);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      box-shadow: 0 25px 70px rgba(0, 0, 0, 0.5);
+      border: 4px solid #334155;
+      /* Escalar visualmente si la pantalla es más pequeña que 1920px de alto */
+      transform: scale(0.4);
+      transform-origin: center center;
       transition: background-color 0.3s ease;
     }
 
-    /* Contenedor del Logo */
+    /* Ajustar escala automática en pantallas pequeñas */
+    @media (max-height: 950px) {
+      .reel-canvas {
+        transform: scale(0.4);
+      }
+    }
+    @media (max-height: 800px) {
+      .reel-canvas {
+        transform: scale(0.35);
+      }
+    }
+    @media (max-height: 700px) {
+      .reel-canvas {
+        transform: scale(0.3);
+      }
+    }
+
+    /* Contenedor del Logo centralizado y agrandado para formato vertical */
     .logo-container {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 20px;
+      gap: 36px;
     }
 
     /* Icono de Huella flotante con degradado */
     .logo-icon-bg {
-      width: 150px;
-      height: 150px;
-      border-radius: 46px;
+      width: 280px;
+      height: 280px;
+      border-radius: 86px;
       background: linear-gradient(135deg, hsl(350, 90%, 60%) 0%, hsl(20, 95%, 55%) 100%);
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 20px 50px rgba(244, 63, 94, 0.35);
+      box-shadow: 0 40px 90px rgba(244, 63, 94, 0.45);
       animation: floatLoop 3s ease-in-out infinite;
     }
 
     .logo-icon {
-      width: 80px;
-      height: 80px;
+      width: 150px;
+      height: 150px;
       color: white;
     }
 
     /* Texto enlapet */
     .logo-text {
-      font-size: 4rem;
+      font-size: 8rem;
       font-weight: 900;
       background: linear-gradient(135deg, hsl(350, 95%, 50%), hsl(20, 95%, 50%));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       margin: 0;
-      letter-spacing: -2px;
+      letter-spacing: -4px;
       text-transform: lowercase;
-      filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.1));
+      filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.15));
     }
 
     /* Keyframes para un rebote/flotado súper suave */
@@ -73,21 +107,21 @@
         transform: translateY(0px) rotate(0deg) scale(1);
       }
       50% {
-        transform: translateY(-20px) rotate(4deg) scale(1.02);
+        transform: translateY(-40px) rotate(4deg) scale(1.03);
       }
     }
 
-    /* Panel de Control flotante para Grabación */
+    /* Panel de Control flotante */
     .control-panel {
       position: fixed;
-      bottom: 24px;
+      bottom: 20px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(15, 23, 42, 0.85);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      padding: 12px 20px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 14px 24px;
       border-radius: 20px;
       display: flex;
       gap: 12px;
@@ -111,33 +145,47 @@
     .btn-green { background-color: #00ff00; color: black; }
     
     .panel-title {
-      color: rgba(255, 255, 255, 0.8);
-      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 0.85rem;
       margin-right: 8px;
+    }
+
+    .instructions {
+      position: absolute;
+      top: 60px;
+      color: rgba(255, 255, 255, 0.4);
+      font-size: 1.5rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 2px;
     }
   </style>
 </head>
 <body>
 
-  <!-- Contenedor Animado -->
-  <div class="logo-container">
-    <div class="logo-icon-bg">
-      <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="11" cy="4" r="2" />
-        <circle cx="18" cy="8" r="2" />
-        <circle cx="20" cy="16" r="2" />
-        <path d="M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.045Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z" />
-      </svg>
+  <!-- Lienzo forzado a resolución de Instagram Reel -->
+  <div class="reel-canvas" id="canvas">
+    <div class="instructions">Instagram Reel Loop (1080x1920)</div>
+    
+    <div class="logo-container">
+      <div class="logo-icon-bg">
+        <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="4" r="2" />
+          <circle cx="18" cy="8" r="2" />
+          <circle cx="20" cy="16" r="2" />
+          <path d="M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.045Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z" />
+        </svg>
+      </div>
+      <h1 class="logo-text">enlapet</h1>
     </div>
-    <h1 class="logo-text">enlapet</h1>
   </div>
 
   <!-- Panel de Control de Fondo -->
   <div class="control-panel">
-    <span class="panel-title">Fondo para Grabación:</span>
+    <span class="panel-title">Fondo del Reel:</span>
     <button class="btn btn-dark" onclick="changeBg('#0f172a')">Oscuro</button>
     <button class="btn btn-light" onclick="changeBg('#f8fafc')">Claro</button>
-    <button class="btn btn-green" onclick="changeBg('#00ff00')">Chroma (Verde)</button>
+    <button class="btn btn-green" onclick="changeBg('#00ff00')">Chroma Key</button>
   </div>
 
   <script>
