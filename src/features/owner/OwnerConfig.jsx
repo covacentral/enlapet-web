@@ -145,7 +145,7 @@ export default function OwnerConfig({ onSaveComplete, onBack }) {
   const statesList = currentCountryCode ? STATES_BY_COUNTRY[currentCountryCode] || [] : [];
 
   // Obtener las ciudades disponibles para el estado/departamento actual
-  const citiesList = CITIES_BY_STATE[state] || [];
+  const citiesList = CITIES_BY_STATE[currentCountryCode]?.[state] || [];
 
   return (
     <div className={styles.container}>
