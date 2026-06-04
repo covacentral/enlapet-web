@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { collection, query, where, onSnapshot, getDocs } from 'firebase/firestore';
 import { db } from '../../core/firebase/firebase';
 import { useAuth } from '../auth/AuthContext';
-import { Settings, LogOut, AlertTriangle, Plus, Copy, Notebook, Heart, Edit2, Search, PawPrint } from 'lucide-react';
+import { Settings, LogOut, AlertTriangle, Plus, Copy, Notebook, Heart, Edit2, Search, PawPrint, Phone, ShieldAlert } from 'lucide-react';
+import { formatPetAge } from '../../shared/utils/generators';
 import styles from './PetDashboard.module.css';
 
 export default function PetDashboard({ onNavigateToOwnerConfig, onNavigateToPetDetail, onNavigateToAddPet, onNavigateToEditPet }) {
@@ -12,6 +13,9 @@ export default function PetDashboard({ onNavigateToOwnerConfig, onNavigateToPetD
 
   // Estado para la orden de la medalla NFC
   const [selectedPetsForMedal, setSelectedPetsForMedal] = useState({});
+
+  // Estado para vista previa del perfil público del NFC
+  const [previewPet, setPreviewPet] = useState(null);
 
   // Estados de Administrador Maestro
   const [searchInput, setSearchInput] = useState('ELP-');
@@ -258,12 +262,17 @@ export default function PetDashboard({ onNavigateToOwnerConfig, onNavigateToPetD
       ) : (
         <div className={styles.petsGrid}>
           {pets.map((pet) => (
-            <div key={pet.id} className={styles.petCard}>
+            <div 
+              key={pet.id} 
+              className={styles.petCard} 
+              onClick={() => setPreviewPet(pet)}
+              style={{ cursor: 'pointer' }}
+            >
               <img 
                 src={pet.photoUrl || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="150" height="150" fill="%23ccc"><path d="M12 14c-1.66 0-3 1.34-3 3 0 2 2 3 3 3s3-1 3-3c0-1.66-1.34-3-3-3zm-4.5-3c-.83 0-1.5-.67-1.5-1.5S6.67 8 7.5 8s1.5.67 1.5 1.5S8.33 11 7.5 11zm9 0c-.83 0-1.5-.67-1.5-1.5S15.67 8 16.5 8s1.5.67 1.5 1.5S17.33 11 16.5 11zm-5.25-3.5c-.69 0-1.25-.56-1.25-1.25S10.81 5 11.25 5s1.25.56 1.25 1.25-.56 1.25-1.25 1.25zm2.5 0c-.69 0-1.25-.56-1.25-1.25S13.31 5 13.75 5s1.25.56 1.25 1.25-.56 1.25-1.25 1.25z"/></svg>'} 
                 alt={pet.name} 
                 className={styles.petPhoto}
-                onClick={() => onNavigateToEditPet(pet.id)}
+                onClick={(e) => { e.stopPropagation(); onNavigateToEditPet(pet.id); }}
                 style={{ cursor: 'pointer' }}
                 title="Hacer clic para editar foto"
               />
@@ -276,7 +285,7 @@ export default function PetDashboard({ onNavigateToOwnerConfig, onNavigateToPetD
               </div>
               <div className={styles.petCardActions}>
                 <button 
-                  onClick={() => onNavigateToPetDetail(pet.id)} 
+                  onClick={(e) => { e.stopPropagation(); onNavigateToPetDetail(pet.id); }} 
                   className={styles.viewBtn}
                   title="Ver Diario Médico"
                   aria-label="Ver Diario Médico"
@@ -284,7 +293,7 @@ export default function PetDashboard({ onNavigateToOwnerConfig, onNavigateToPetD
                   <Notebook size={16} />
                 </button>
                 <button 
-                  onClick={() => onNavigateToEditPet(pet.id)} 
+                  onClick={(e) => { e.stopPropagation(); onNavigateToEditPet(pet.id); }} 
                   className={styles.editBtn}
                   title="Editar Mascota"
                   aria-label="Editar Mascota"
@@ -299,6 +308,79 @@ export default function PetDashboard({ onNavigateToOwnerConfig, onNavigateToPetD
           <button onClick={onNavigateToAddPet} className={styles.btnAddFloating} aria-label="Agregar Mascota">
             <Plus size={24} />
           </button>
+        </div>
+      )}
+
+      {/* Ventana flotante de Vista Previa NFC */}
+      {previewPet && (
+        <div className={styles.modalOverlay} onClick={() => setPreviewPet(null)}>
+          <div className={styles.previewModalCard} onClick={(e) => e.stopPropagation()}>
+            <button 
+              className={styles.closePreviewBtn} 
+              onClick={() => setPreviewPet(null)}
+              aria-label="Cerrar vista previa"
+            >
+              &times;
+            </button>
+            <div className={styles.previewCircle1}></div>
+            <div className={styles.previewCircle2}></div>
+
+            {/* Identidad enlapet en la parte superior */}
+            <div className={styles.previewBrandHeader}>
+              <PawPrint className={styles.previewBrandLogoIcon} size={22} />
+              <span className={styles.previewBrandLogoText}>enlapet</span>
+            </div>
+
+            {/* Foto de la Mascota */}
+            <div className={styles.previewPetPhotoContainer}>
+              <img 
+                src={previewPet.photoUrl || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="150" height="150" fill="%23ccc"><path d="M12 14c-1.66 0-3 1.34-3 3 0 2 2 3 3 3s3-1 3-3c0-1.66-1.34-3-3-3zm-4.5-3c-.83 0-1.5-.67-1.5-1.5S6.67 8 7.5 8s1.5.67 1.5 1.5S8.33 11 7.5 11zm9 0c-.83 0-1.5-.67-1.5-1.5S15.67 8 16.5 8s1.5.67 1.5 1.5S17.33 11 16.5 11zm-5.25-3.5c-.69 0-1.25-.56-1.25-1.25S10.81 5 11.25 5s1.25.56 1.25 1.25-.56 1.25-1.25 1.25zm2.5 0c-.69 0-1.25-.56-1.25-1.25S13.31 5 13.75 5s1.25.56 1.25 1.25-.56 1.25-1.25 1.25z"/></svg>'} 
+                alt={previewPet.name} 
+                className={styles.previewPetPhoto}
+              />
+            </div>
+
+            {/* Nombre y Edad */}
+            <div className={styles.previewPetMainInfo}>
+              <h1 className={styles.previewPetName}>{previewPet.name}</h1>
+              <span className={styles.previewAgeText}>
+                {formatPetAge(previewPet.birthDate)}
+              </span>
+            </div>
+
+            {/* Botón de Contacto por WhatsApp ficticio/real (utilizando ownerData) */}
+            {ownerData?.contact?.phone ? (
+              <button 
+                onClick={() => {
+                  const phone = ownerData?.contact?.phone || '';
+                  const cleanPhone = phone.replace(/[^0-9+]/g, '');
+                  const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(
+                    `Hola! He escaneado el collar de identificación enlapet y encontré a tu mascota ${previewPet.name}. ¿Se encuentra extraviada?`
+                  )}`;
+                  window.open(whatsappUrl, '_blank');
+                }} 
+                className={styles.previewBtnWhatsapp}
+                aria-label="Contactar al dueño por WhatsApp (Vista previa)"
+              >
+                <Phone size={20} />
+                <span>Contactar al Dueño</span>
+              </button>
+            ) : (
+              <div className={styles.previewNoPhoneAlert}>
+                <ShieldAlert size={20} />
+                <span>Sin contacto registrado</span>
+              </div>
+            )}
+
+            {/* Botón de Captación para Registrar Mascota (Vista previa) */}
+            <button 
+              onClick={() => setPreviewPet(null)} 
+              className={styles.previewBtnRegisterPromo}
+            >
+              <PawPrint size={18} />
+              <span>Registra tu mascota en enlapet</span>
+            </button>
+          </div>
         </div>
       )}
     </div>
