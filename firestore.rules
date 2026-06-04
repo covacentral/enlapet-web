@@ -7,6 +7,12 @@ service cloud.firestore {
       return request.auth != null;
     }
     
+    function isAdmin() {
+      return isAuthenticated() && 
+        ('email' in request.auth.token) && 
+        (request.auth.token.email == 'covacentral@gmail.com' || request.auth.token.email.matches('.*admin.*'));
+    }
+    
     function isOwner(userId) {
       return isAuthenticated() && request.auth.uid == userId;
     }
@@ -18,8 +24,8 @@ service cloud.firestore {
 
     // 2. Colección de Mascotas (Pets)
     match /pets/{petId} {
-      // El dueño o el administrador maestro pueden leer, actualizar o borrar
-      allow read, update, delete: if isAuthenticated() && (resource.data.ownerId == request.auth.uid || request.auth.token.email == 'covacentral@gmail.com');
+      // El dueño o el administrador maestro pueden leer (get/list), actualizar o borrar
+      allow read, update, delete: if isAdmin() || (isAuthenticated() && resource.data.ownerId == request.auth.uid);
       
       // Permitir la creación de mascotas si se asocian correctamente al creador
       allow create: if isAuthenticated() && request.resource.data.ownerId == request.auth.uid;
@@ -29,8 +35,7 @@ service cloud.firestore {
 
       // Subcolección de historial clínico
       match /medical_records/{recordId} {
-        allow read, update, delete: if isAuthenticated() && get(/databases/$(database)/documents/pets/$(petId)).data.ownerId == request.auth.uid;
-        allow create: if isAuthenticated() && get(/databases/$(database)/documents/pets/$(petId)).data.ownerId == request.auth.uid;
+        allow read, write: if isAdmin() || (isAuthenticated() && get(/databases/$(database)/documents/pets/$(petId)).data.ownerId == request.auth.uid);
         allow get: if true;
       }
     }
@@ -43,8 +48,9 @@ service cloud.firestore {
       // Creación del mapeo: solo si el dueño de la mascota coincide con el autenticado
       allow create: if isAuthenticated() && request.resource.data.ownerId == request.auth.uid;
       
-      // Solo el dueño puede borrar o actualizar su mapeo
-      allow update, delete: if isAuthenticated() && resource.data.ownerId == request.auth.uid;
+      // Solo el dueño o el admin pueden borrar o actualizar su mapeo
+      allow update, delete: if isAdmin() || (isAuthenticated() && resource.data.ownerId == request.auth.uid);
     }
   }
 }
+
