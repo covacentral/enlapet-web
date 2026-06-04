@@ -177,43 +177,48 @@
       ctx.fillStyle = currentBgColor;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Calcular animación de vaivén (Fórmula seno suave)
-      const amplitude = 40; 
-      const bounce = Math.sin(time * 0.0025) * amplitude;
+      // Calcular animación de vaivén para el icono (Fórmula seno suave con pequeña rotación)
+      const amplitude = 30; 
+      const bounce = Math.sin(time * 0.002) * amplitude;
+      const angle = Math.sin(time * 0.002) * 0.04; // Rotación leve en radianes
 
-      // El logo y el texto ocupan el 90% del ancho del canvas (1080 * 0.9 = 972px)
-      const containerWidth = 972;
       const centerX = canvas.width / 2;
 
-      ctx.save();
-      // Aplicar flotado vertical al contenedor completo
-      ctx.translate(0, bounce);
-
-      // 1. Dibujar el contenedor cuadrado del logo con degradado
+      // 1. DIBUJAR ÚNICAMENTE EL ICONO CON LA ANIMACIÓN (Rebote y rotación)
       const squareSize = 360;
+      const baseIconY = 550; // Posición base vertical
       const squareX = centerX - squareSize / 2;
-      const squareY = 550; // Posición base vertical
+
+      ctx.save();
+      // Mover origen al centro del icono para rotación y traslación correcta
+      ctx.translate(centerX, baseIconY + squareSize / 2 + bounce);
+      ctx.rotate(angle);
+      ctx.translate(-centerX, -(baseIconY + squareSize / 2));
 
       // Crear gradiente de marca
-      const grad = ctx.createLinearGradient(squareX, squareY, squareX + squareSize, squareY + squareSize);
+      const grad = ctx.createLinearGradient(squareX, baseIconY, squareX + squareSize, baseIconY + squareSize);
       grad.addColorStop(0, 'hsl(350, 90%, 60%)');
       grad.addColorStop(1, 'hsl(20, 95%, 55%)');
-
-      // Dibujar rectángulo redondeado
-      ctx.fillStyle = grad;
-      ctx.beginPath();
-      ctx.roundRect(squareX, squareY, squareSize, squareSize, 96);
-      ctx.fill();
 
       // Sombra del contenedor
       ctx.shadowColor = 'rgba(244, 63, 94, 0.4)';
       ctx.shadowBlur = 80;
       ctx.shadowOffsetY = 20;
 
-      // 2. Dibujar el Icono de la Huella (Delineada) en blanco dentro del cuadro
+      // Dibujar rectángulo redondeado
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.roundRect(squareX, baseIconY, squareSize, squareSize, 96);
+      ctx.fill();
+
+      // Restaurar sombras para el interior del icono
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetY = 0;
+
+      // Dibujar el Icono de la Huella (Delineada) en blanco
       ctx.save();
-      ctx.translate(squareX + (squareSize - 180) / 2, squareY + (squareSize - 180) / 2);
-      ctx.scale(7.5, 7.5); // Escalar al tamaño deseado (180px de alto aprox)
+      ctx.translate(squareX + (squareSize - 180) / 2, baseIconY + (squareSize - 180) / 2);
+      ctx.scale(7.5, 7.5);
       
       ctx.strokeStyle = '#ffffff';
       ctx.lineWidth = 2.2;
@@ -236,14 +241,13 @@
 
       // Almohadilla central
       ctx.stroke(pawPath);
-      ctx.restore();
+      ctx.restore(); // Termina transformaciones del icono
 
-      // Restaurar sombras para evitar que afecte al texto
-      ctx.shadowBlur = 0;
-      ctx.shadowOffsetY = 0;
+      ctx.restore(); // Termina animación del icono
 
-      // 3. Dibujar Texto "enlapet" con Degradado
-      const textY = squareY + squareSize + 180;
+      // 2. DIBUJAR TEXTO Y ESLOGAN DE FORMA ESTÁTICA (No rebotan)
+      // Texto "enlapet" con Degradado
+      const textY = baseIconY + squareSize + 180;
       const textGrad = ctx.createLinearGradient(centerX - 250, textY - 80, centerX + 250, textY);
       textGrad.addColorStop(0, 'hsl(350, 95%, 50%)');
       textGrad.addColorStop(1, 'hsl(20, 95%, 50%)');
@@ -254,14 +258,12 @@
       ctx.textBaseline = 'middle';
       ctx.fillText('enlapet', centerX, textY);
 
-      // 4. Dibujar Eslogan
+      // Eslogan
       ctx.fillStyle = currentBgColor === '#f8fafc' ? '#334155' : 'rgba(255, 255, 255, 0.9)';
       ctx.font = '600 38px "Outfit", sans-serif';
       
       const sloganY = textY + 140;
       wrapText(ctx, "Identificación inteligente para los que no pueden hablar.", centerX, sloganY, 800, 54);
-
-      ctx.restore();
 
       requestAnimationFrame(draw);
     }
