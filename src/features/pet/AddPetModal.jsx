@@ -167,7 +167,7 @@ export default function AddPetModal({ onSaveComplete, onBack, petId }) {
             <ChevronLeft size={20} />
           </button>
         )}
-        <h1 className={styles.title}>Registrar Mascota</h1>
+        <h1 className={styles.title}>{petId ? 'Editar Mascota' : 'Registrar Mascota'}</h1>
       </div>
 
       <form onSubmit={handleSave} className={styles.card}>
@@ -270,9 +270,20 @@ export default function AddPetModal({ onSaveComplete, onBack, petId }) {
           </div>
         </div>
 
-        <button type="submit" disabled={loading} className={styles.btnSubmit}>
-          {loading ? 'Registrando Mascota...' : 'Registrar y Generar EPID'}
-        </button>
+        {petId ? (
+          <div className={styles.actionRow}>
+            <button type="button" onClick={onBack} className={styles.btnCancelEdit}>
+              Cancelar
+            </button>
+            <button type="submit" disabled={loading} className={styles.btnSubmitEdit}>
+              {loading ? 'Guardando...' : 'Guardar cambios'}
+            </button>
+          </div>
+        ) : (
+          <button type="submit" disabled={loading} className={styles.btnSubmit}>
+            {loading ? 'Registrando Mascota...' : 'Registrar y Generar EPID'}
+          </button>
+        )}
       </form>
     </div>
   );

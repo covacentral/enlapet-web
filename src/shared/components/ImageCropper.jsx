@@ -10,6 +10,9 @@ export default function ImageCropper({ imageSrc, onCrop, onCancel }) {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
+  // Estados para Pinch-to-Zoom táctil
+  const [touchDistance, setTouchDistance] = useState(null);
+
   // Carga la imagen al inicializar
   useEffect(() => {
     if (!imageSrc) return;
@@ -46,22 +49,53 @@ export default function ImageCropper({ imageSrc, onCrop, onCancel }) {
     ctx.drawImage(imgElement, x, y, drawWidth, drawHeight);
   }, [imgElement, scale, offset]);
 
-  // Manejo de Arrastre (Mouse y Touch)
-  const handleStart = (clientX, clientY) => {
-    setIsDragging(true);
-    setDragStart({ x: clientX - offset.x, y: clientY - offset.y });
+  // Manejo de Interacción táctil y de mouse unificados
+  const handleStart = (e) => {
+    if (e.touches && e.touches.length === 2) {
+      // Inicia Pinch to Zoom
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      setTouchDistance(dist);
+      setIsDragging(false);
+    } else {
+      // Arrastre simple (mouse o touch de 1 dedo)
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      setIsDragging(true);
+      setDragStart({ x: clientX - offset.x, y: clientY - offset.y });
+    }
   };
 
-  const handleMove = (clientX, clientY) => {
-    if (!isDragging) return;
-    setOffset({
-      x: clientX - dragStart.x,
-      y: clientY - dragStart.y
-    });
+  const handleMove = (e) => {
+    if (e.touches && e.touches.length === 2) {
+      if (touchDistance === null) return;
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      
+      const factor = dist / touchDistance;
+      setScale((prev) => {
+        let newScale = prev * factor;
+        // Limites del zoom: 0.1x a 5x
+        return Math.max(0.1, Math.min(5, newScale));
+      });
+      setTouchDistance(dist);
+    } else if (isDragging) {
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      setOffset({
+        x: clientX - dragStart.x,
+        y: clientY - dragStart.y
+      });
+    }
   };
 
   const handleEnd = () => {
     setIsDragging(false);
+    setTouchDistance(null);
   };
 
   // Confirmar Recorte y Devolver Blob
@@ -97,17 +131,17 @@ export default function ImageCropper({ imageSrc, onCrop, onCancel }) {
     <div className={styles.cropperOverlay}>
       <div className={styles.cropperCard}>
         <h2 className={styles.title}>Encuadra la Foto</h2>
-        <p className={styles.subtitle}>Arrastra y escala la foto para que quede 1:1 (cuadrada)</p>
+        <p className={styles.subtitle}>Desplaza la foto con un dedo y haz zoom con dos dedos (pellizco) o usa el control de abajo.</p>
 
         <div 
           ref={containerRef}
           className={styles.canvasContainer}
-          onMouseDown={(e) => handleStart(e.clientX, e.clientY)}
-          onMouseMove={(e) => handleMove(e.clientX, e.clientY)}
+          onMouseDown={handleStart}
+          onMouseMove={handleMove}
           onMouseUp={handleEnd}
           onMouseLeave={handleEnd}
-          onTouchStart={(e) => handleStart(e.touches[0].clientX, e.touches[0].clientY)}
-          onTouchMove={(e) => handleMove(e.touches[0].clientX, e.touches[0].clientY)}
+          onTouchStart={handleStart}
+          onTouchMove={handleMove}
           onTouchEnd={handleEnd}
         >
           <canvas 
@@ -121,7 +155,7 @@ export default function ImageCropper({ imageSrc, onCrop, onCancel }) {
 
         <div className={styles.controlGroup}>
           <div className={styles.sliderLabel}>
-            <span>Escala / Zoom</span>
+            <span>Zoom</span>
             <span>{Math.round(scale * 100)}%</span>
           </div>
           <input 
@@ -138,7 +172,7 @@ export default function ImageCropper({ imageSrc, onCrop, onCancel }) {
 
         <div className={styles.actionGroup}>
           <button onClick={onCancel} className={styles.btnCancel}>Cancelar</button>
-          <button onClick={handleConfirm} className={styles.btnConfirm}>Recortar</button>
+          <button onClick={handleConfirm} className={styles.btnConfirm}>Guardar</button>
         </div>
       </div>
     </div>
