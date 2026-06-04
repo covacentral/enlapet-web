@@ -33,7 +33,7 @@ export default function AuthPage() {
           </div>
         </div>
         
-        <h1 className={styles.title}>EnlaPet</h1>
+        <h1 className={styles.title}>enlapet</h1>
         <p className={styles.subtitle}>
           Identificación inteligente NFC para proteger a quienes más quieres.
         </p>

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../core/firebase/firebase';
 import styles from './PublicPetView.module.css';
-import { Phone, ShieldAlert } from 'lucide-react';
+import { Phone, ShieldAlert, PawPrint } from 'lucide-react';
 
 export default function PublicPetView({ secureToken }) {
   const [loading, setLoading] = useState(true);
@@ -84,13 +84,19 @@ export default function PublicPetView({ secureToken }) {
   const phone = owner?.contact?.phone || '';
   const cleanPhone = phone.replace(/[^0-9+]/g, '');
   const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(
-    `Hola! He escaneado el collar de identificación EnlaPet y encontré a tu mascota ${pet?.name}. ¿Se encuentra extraviada?`
+    `Hola! He escaneado el collar de identificación enlapet y encontré a tu mascota ${pet?.name}. ¿Se encuentra extraviada?`
   )}`;
 
   return (
     <div className={styles.container}>
       <div className={styles.circle1}></div>
       <div className={styles.circle2}></div>
+
+      {/* Identidad enlapet en la parte superior */}
+      <div className={styles.brandHeader}>
+        <PawPrint className={styles.brandLogoIcon} size={26} />
+        <span className={styles.brandLogoText}>enlapet</span>
+      </div>
 
       <div className={styles.card}>
         {/* Foto de la Mascota (80vw de ancho y proporcional 1:1) */}
@@ -127,6 +133,15 @@ export default function PublicPetView({ secureToken }) {
           </div>
         )}
       </div>
+
+      {/* Botón de Captación para Registrar Mascota */}
+      <button 
+        onClick={() => window.open(window.location.origin, '_self')} 
+        className={styles.btnRegisterPromo}
+      >
+        <PawPrint size={18} />
+        <span>Registra tu mascota en enlapet</span>
+      </button>
     </div>
   );
 }

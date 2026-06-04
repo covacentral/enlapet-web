@@ -2,13 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { collection, query, where, onSnapshot, getDocs } from 'firebase/firestore';
 import { db } from '../../core/firebase/firebase';
 import { useAuth } from '../auth/AuthContext';
-import { Settings, LogOut, AlertTriangle, Plus, Copy, Notebook, Heart, Edit2, Search } from 'lucide-react';
+import { Settings, LogOut, AlertTriangle, Plus, Copy, Notebook, Heart, Edit2, Search, PawPrint } from 'lucide-react';
 import styles from './PetDashboard.module.css';
 
 export default function PetDashboard({ onNavigateToOwnerConfig, onNavigateToPetDetail, onNavigateToAddPet, onNavigateToEditPet }) {
   const { user, ownerData, logout, isProfileComplete } = useAuth();
   const [pets, setPets] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Estado para la orden de la medalla NFC
+  const [selectedPetsForMedal, setSelectedPetsForMedal] = useState({});
 
   // Estados de Administrador Maestro
   const [searchInput, setSearchInput] = useState('ELP-');
@@ -92,6 +95,30 @@ export default function PetDashboard({ onNavigateToOwnerConfig, onNavigateToPetD
     }
   };
 
+  const togglePetSelectionForMedal = (petId) => {
+    setSelectedPetsForMedal(prev => ({
+      ...prev,
+      [petId]: !prev[petId]
+    }));
+  };
+
+  const handleRequestMedal = () => {
+    const selectedIds = Object.keys(selectedPetsForMedal).filter(id => selectedPetsForMedal[id]);
+    if (selectedIds.length === 0) {
+      alert("Por favor selecciona al menos una mascota para solicitar su medalla NFC.");
+      return;
+    }
+
+    const selectedPetsInfo = pets.filter(p => selectedIds.includes(p.id));
+    let message = "¡Hola! Quiero solicitar la medalla inteligente NFC enlapet para mi(s) mascota(s):\n\n";
+    selectedPetsInfo.forEach(p => {
+      message += `- ${p.name} (EPID: ${p.epid})\n`;
+    });
+
+    const waUrl = `https://wa.me/573226460199?text=${encodeURIComponent(message)}`;
+    window.open(waUrl, '_blank');
+  };
+
   const copyNfcLink = (secureToken) => {
     const link = `${window.location.origin}/p/${secureToken}`;
     navigator.clipboard.writeText(link).then(() => {
@@ -103,6 +130,12 @@ export default function PetDashboard({ onNavigateToOwnerConfig, onNavigateToPetD
 
   return (
     <div className={styles.container}>
+      {/* Identidad enlapet */}
+      <div className={styles.brandHeader}>
+        <PawPrint className={styles.brandLogoIcon} size={26} />
+        <span className={styles.brandLogoText}>enlapet</span>
+      </div>
+
       {/* Cabecera */}
       <div className={styles.header}>
         <div className={styles.welcomeSection}>
@@ -173,6 +206,33 @@ export default function PetDashboard({ onNavigateToOwnerConfig, onNavigateToPetD
           </div>
           <button onClick={onNavigateToOwnerConfig} className={styles.setupWarningBtn}>
             Completar
+          </button>
+        </div>
+      )}
+
+      {/* Panel de Solicitud de Medalla NFC (Para usuarios estándar) */}
+      {!loading && pets.length > 0 && !isAdmin && (
+        <div className={styles.nfcOrderPanel}>
+          <h3 className={styles.nfcOrderTitle}>Adquiere la Medalla Inteligente NFC</h3>
+          <p className={styles.nfcOrderDesc}>
+            Selecciona la(s) mascota(s) para pedir su medalla física grabada. La orden se completará a través de WhatsApp.
+          </p>
+          <div className={styles.nfcOrderList}>
+            {pets.map(p => (
+              <label key={p.id} className={styles.nfcOrderLabel}>
+                <input 
+                  type="checkbox" 
+                  checked={!!selectedPetsForMedal[p.id]} 
+                  onChange={() => togglePetSelectionForMedal(p.id)}
+                  className={styles.nfcOrderCheckbox}
+                />
+                <span className={styles.nfcOrderPetName}>{p.name}</span>
+                <span className={styles.nfcOrderPetEpid}>{p.epid}</span>
+              </label>
+            ))}
+          </div>
+          <button onClick={handleRequestMedal} className={styles.nfcOrderBtn}>
+            Solicitar Medalla NFC (WhatsApp)
           </button>
         </div>
       )}

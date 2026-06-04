@@ -202,3 +202,115 @@
 .btnLogout:active {
   transform: scale(0.98);
 }
+
+.extraActions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.btnSupport, .btnFeedback {
+  padding: 12px 14px;
+  background-color: white;
+  border: 1px solid hsl(220, 20%, 88%);
+  color: hsl(220, 30%, 35%);
+  border-radius: 14px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.btnSupport:hover {
+  background-color: hsl(145, 100%, 98%);
+  border-color: hsl(145, 100%, 90%);
+  color: hsl(145, 100%, 30%);
+}
+
+.btnFeedback:hover {
+  background-color: hsl(200, 100%, 98%);
+  border-color: hsl(200, 100%, 90%);
+  color: hsl(200, 100%, 35%);
+}
+
+.secondaryCard {
+  background-color: white;
+  border-radius: 24px;
+  padding: 20px;
+  margin-top: 16px;
+  border: 1px solid hsl(220, 20%, 92%);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.secondaryCard h3 {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: hsl(220, 40%, 15%);
+  margin: 0;
+}
+
+.secondaryCardDesc {
+  font-size: 0.82rem;
+  color: hsl(220, 10%, 55%);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.textarea {
+  padding: 12px 16px;
+  border-radius: 14px;
+  border: 1.5px solid hsl(220, 20%, 88%);
+  font-size: 0.95rem;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.2s;
+  color: hsl(220, 30%, 20%);
+  resize: vertical;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.textarea:focus {
+  border-color: hsl(200, 100%, 45%);
+}
+
+.btnSendSupport {
+  padding: 14px;
+  background: linear-gradient(135deg, hsl(145, 80%, 40%) 0%, hsl(155, 85%, 35%) 100%);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+  text-align: center;
+}
+
+.btnSendSupport:hover {
+  opacity: 0.95;
+}
+
+.btnSendFeedback {
+  padding: 14px;
+  background: linear-gradient(135deg, hsl(200, 100%, 45%), hsl(220, 100%, 55%));
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 150, 255, 0.2);
+  text-align: center;
+}
+
+.btnSendFeedback:hover {
+  opacity: 0.95;
+}
+
