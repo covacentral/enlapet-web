@@ -815,5 +815,16 @@
   transform: scale(0.98);
 }
 
+.previewSpeciesTag {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: hsl(220, 20%, 45%);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: block;
+  margin-bottom: 2px;
+}
+
+
 
 

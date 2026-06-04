@@ -342,6 +342,9 @@ export default function PetDashboard({ onNavigateToOwnerConfig, onNavigateToPetD
 
             {/* Nombre y Edad */}
             <div className={styles.previewPetMainInfo}>
+              <span className={styles.previewSpeciesTag}>
+                {previewPet.species === 'Dog' ? '🐶 Perro' : previewPet.species === 'Cat' ? '🐱 Gato' : `🐾 ${previewPet.species || 'Otro'}`} &bull; {previewPet.breed || 'Sin Raza'}
+              </span>
               <h1 className={styles.previewPetName}>{previewPet.name}</h1>
               <span className={styles.previewAgeText}>
                 {formatPetAge(previewPet.birthDate)}
