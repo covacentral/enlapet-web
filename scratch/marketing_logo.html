@@ -32,8 +32,8 @@
     /* Contenedor de previsualización a escala */
     .preview-container {
       position: relative;
-      width: 360px;  /* 1080 / 3 */
-      height: 640px; /* 1920 / 3 */
+      width: 320px;  
+      height: 568px; /* Proporción vertical */
       box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
       border: 3px solid #334155;
       border-radius: 18px;
@@ -113,11 +113,22 @@
     }
 
     .instructions {
-      max-width: 360px;
-      font-size: 0.8rem;
+      max-width: 320px;
+      font-size: 0.78rem;
       color: #64748b;
       line-height: 1.5;
       text-align: center;
+    }
+
+    .alert-box {
+      background-color: rgba(244, 63, 94, 0.1);
+      border: 1px solid rgba(244, 63, 94, 0.2);
+      border-radius: 12px;
+      padding: 10px;
+      font-size: 0.78rem;
+      color: hsl(350, 90%, 80%);
+      line-height: 1.4;
+      text-align: left;
     }
   </style>
 </head>
@@ -126,7 +137,7 @@
   <div class="main-container">
     <h2>enlapet Reel Generator</h2>
     
-    <!-- Previsualización en tiempo real del Canvas (Escala 1:3 en la interfaz) -->
+    <!-- Previsualización en tiempo real del Canvas -->
     <div class="preview-container">
       <canvas id="exportCanvas" width="1080" height="1920"></canvas>
     </div>
@@ -146,10 +157,14 @@
         Exportar Video Reel (15s)
       </button>
       <div id="status" class="status-text">Listo para exportar</div>
+
+      <div class="alert-box">
+        ⚠️ <strong>Nota de Instagram:</strong> Instagram no acepta el formato de video <code>.webm</code> directamente. Al terminar, conviértelo gratis a <code>.mp4</code> en webs como <strong>CloudConvert</strong> o <strong>EZGIF</strong> para subirlo.
+      </div>
     </div>
 
     <div class="instructions">
-      * Al exportar, el script procesará la animación exacta de 15 segundos en resolución vertical nativa 1080x1920 (9:16) y descargará un archivo de video en tu carpeta de descargas de forma automática.
+      * Procesado a 60 FPS con tasa de bits ultra alta (8 Mbps) para máxima fluidez y nitidez en redes sociales.
     </div>
   </div>
 
@@ -298,16 +313,26 @@
       isRecording = true;
       recordBtn.disabled = true;
 
-      // Usar captureStream del Canvas
-      const stream = canvas.captureStream(30); // 30 FPS
+      // Forzar captura a 60 FPS constantes para evitar lag
+      const stream = canvas.captureStream(60);
       
-      // Intentar usar formatos soportados por el navegador
-      let options = { mimeType: 'video/webm;codecs=vp9' };
+      // Intentar usar formatos soportados por el navegador a máxima calidad
+      let options = { 
+        mimeType: 'video/webm;codecs=vp9', 
+        videoBitsPerSecond: 8000000 // 8 Mbps para excelente nitidez
+      };
+      
       if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-        options = { mimeType: 'video/webm;codecs=vp8' };
+        options = { 
+          mimeType: 'video/webm;codecs=vp8',
+          videoBitsPerSecond: 8000000
+        };
       }
       if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-        options = { mimeType: 'video/webm' };
+        options = { 
+          mimeType: 'video/webm',
+          videoBitsPerSecond: 8000000
+        };
       }
 
       const mediaRecorder = new MediaRecorder(stream, options);
@@ -344,12 +369,12 @@
       mediaRecorder.start();
       
       let secondsLeft = 15;
-      statusText.innerText = `Grabando y renderizando... ${secondsLeft}s restantes`;
+      statusText.innerText = `Grabando a 60 FPS... ${secondsLeft}s restantes`;
       
       const interval = setInterval(() => {
         secondsLeft--;
         if (secondsLeft > 0) {
-          statusText.innerText = `Grabando y renderizando... ${secondsLeft}s restantes`;
+          statusText.innerText = `Grabando a 60 FPS... ${secondsLeft}s restantes`;
         } else {
           clearInterval(interval);
           mediaRecorder.stop();
