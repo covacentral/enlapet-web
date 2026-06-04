@@ -11,7 +11,7 @@ export default function PetDashboard({ onNavigateToOwnerConfig, onNavigateToPetD
   const [loading, setLoading] = useState(true);
 
   // Estados de Administrador Maestro
-  const [searchInput, setSearchInput] = useState('');
+  const [searchInput, setSearchInput] = useState('ELP-');
   const [searchLoading, setSearchLoading] = useState(false);
   const [foundPet, setFoundPet] = useState(null);
 
@@ -38,23 +38,51 @@ export default function PetDashboard({ onNavigateToOwnerConfig, onNavigateToPetD
     return () => unsubscribe();
   }, [user]);
 
+  // Manejar entrada de EPID con auto-relleno e inteligente
+  const handleSearchInputChange = (e) => {
+    let value = e.target.value.toUpperCase();
+    
+    // Si el usuario intentó borrar el prefijo o vaciar el campo
+    if (!value.startsWith('ELP-')) {
+      if (value === '' || value === 'E' || value === 'EL' || value === 'ELP') {
+        setSearchInput('ELP-');
+        return;
+      }
+      // Si pegó el código directo (ej. 4B7X82), agregar prefijo
+      value = 'ELP-' + value.replace(/[^A-Z0-9]/g, '');
+    } else {
+      // Limpiar caracteres no alfanuméricos después de 'ELP-'
+      const prefix = 'ELP-';
+      const rest = value.substring(prefix.length).replace(/[^A-Z0-9]/g, '');
+      value = prefix + rest;
+    }
+
+    // Máximo 10 caracteres (ELP- es 4 + 6 alfanuméricos)
+    if (value.length > 10) {
+      value = value.substring(0, 10);
+    }
+    
+    setSearchInput(value);
+  };
+
   // Búsqueda maestra por EPID para Administrador
   const handleAdminSearch = async (e) => {
     e.preventDefault();
-    if (!searchInput.trim()) return;
+    const queryEpid = searchInput.trim().toUpperCase();
+    if (queryEpid === 'ELP-' || !queryEpid) return;
 
     setSearchLoading(true);
     setFoundPet(null);
     try {
       const petsRef = collection(db, 'pets');
-      const q = query(petsRef, where('epid', '==', searchInput.toUpperCase().trim()));
+      const q = query(petsRef, where('epid', '==', queryEpid));
       const snap = await getDocs(q);
 
       if (!snap.empty) {
         const doc = snap.docs[0];
         setFoundPet({ id: doc.id, ...doc.data() });
       } else {
-        alert("No se encontró ninguna mascota con ese EPID.");
+        alert(`No se encontró ninguna mascota con el EPID ${queryEpid}.`);
       }
     } catch (err) {
       console.error("Error en búsqueda administrativa:", err);
@@ -101,7 +129,7 @@ export default function PetDashboard({ onNavigateToOwnerConfig, onNavigateToPetD
             <input 
               type="text"
               value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
+              onChange={handleSearchInputChange}
               placeholder="Escribe el EPID de la mascota (ej: ELP-XXXXXX)"
               className={styles.adminSearchInput}
             />

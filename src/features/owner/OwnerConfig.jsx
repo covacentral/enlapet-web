@@ -3,39 +3,117 @@ import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../core/firebase/firebase';
 import { useAuth } from '../auth/AuthContext';
 import { ChevronLeft, Info } from 'lucide-react';
+import { LATAM_COUNTRIES, STATES_BY_COUNTRY, CITIES_BY_STATE } from '../../shared/utils/locationData';
 import styles from './OwnerConfig.module.css';
 
 export default function OwnerConfig({ onSaveComplete, onBack }) {
   const { user, ownerData, refreshOwnerData, logout } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    country: '',
-    city: '',
-    neighborhood: '',
-    phone: ''
-  });
 
-  // Rellenar formulario con datos existentes
+  // Estados del Formulario
+  const [country, setCountry] = useState('Colombia');
+  const [state, setState] = useState('');
+  const [customState, setCustomState] = useState('');
+  const [city, setCity] = useState('');
+  const [customCity, setCustomCity] = useState('');
+  const [neighborhood, setNeighborhood] = useState('');
+  const [dialCode, setDialCode] = useState('+57');
+  const [phoneNumber, setPhoneNumber] = useState('');
+
+  // Cargar datos existentes del dueño
   useEffect(() => {
     if (ownerData?.contact) {
-      setFormData({
-        country: ownerData.contact.country || 'Colombia',
-        city: ownerData.contact.city || '',
-        neighborhood: ownerData.contact.neighborhood || '',
-        phone: ownerData.contact.phone || ''
-      });
+      const c = ownerData.contact.country || 'Colombia';
+      const s = ownerData.contact.state || ownerData.contact.department || '';
+      const ci = ownerData.contact.city || '';
+      const n = ownerData.contact.neighborhood || '';
+      const fullPhone = ownerData.contact.phone || '';
+
+      setCountry(c);
+      setNeighborhood(n);
+
+      // Encontrar el país correspondiente
+      const foundCountry = LATAM_COUNTRIES.find(item => item.name.toLowerCase() === c.toLowerCase());
+      
+      // Separar dialCode y número telefónico
+      if (fullPhone) {
+        let matchedCode = '+57';
+        let matchedNum = fullPhone;
+
+        const sortedCountries = [...LATAM_COUNTRIES].sort((a, b) => b.dialCode.length - a.dialCode.length);
+        for (const item of sortedCountries) {
+          if (fullPhone.startsWith(item.dialCode)) {
+            matchedCode = item.dialCode;
+            matchedNum = fullPhone.substring(item.dialCode.length);
+            break;
+          }
+        }
+        setDialCode(matchedCode);
+        setPhoneNumber(matchedNum);
+      } else if (foundCountry) {
+        setDialCode(foundCountry.dialCode);
+      }
+
+      // Resolver Departamento/Estado
+      const availableStates = foundCountry ? STATES_BY_COUNTRY[foundCountry.code] : [];
+      if (availableStates && availableStates.includes(s)) {
+        setState(s);
+        setCustomState('');
+      } else if (s) {
+        setState('Otro');
+        setCustomState(s);
+      } else {
+        setState('');
+        setCustomState('');
+      }
+
+      // Resolver Municipio/Ciudad
+      const availableCities = CITIES_BY_STATE[s] || [];
+      if (availableCities && availableCities.includes(ci)) {
+        setCity(ci);
+        setCustomCity('');
+      } else if (ci) {
+        setCity('Otro');
+        setCustomCity(ci);
+      } else {
+        setCity('');
+        setCustomCity('');
+      }
     }
   }, [ownerData]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  // Al cambiar de país, actualizar el código telefónico y reiniciar estado/ciudad
+  const handleCountryChange = (e) => {
+    const selectedName = e.target.value;
+    setCountry(selectedName);
+    setState('');
+    setCustomState('');
+    setCity('');
+    setCustomCity('');
+
+    const foundCountry = LATAM_COUNTRIES.find(item => item.name === selectedName);
+    if (foundCountry) {
+      setDialCode(foundCountry.dialCode);
+    }
+  };
+
+  // Al cambiar de departamento
+  const handleStateChange = (e) => {
+    const selectedState = e.target.value;
+    setState(selectedState);
+    setCity('');
+    setCustomCity('');
   };
 
   const handleSave = async (e) => {
     e.preventDefault();
-    if (!formData.city.trim() || !formData.phone.trim()) {
-      alert("Por favor completa al menos la Ciudad y el Teléfono de contacto.");
+    
+    const finalState = state === 'Otro' ? customState.trim() : state;
+    const finalCity = city === 'Otro' ? customCity.trim() : city;
+    const finalPhone = `${dialCode}${phoneNumber.replace(/\s+/g, '')}`;
+
+    if (!finalCity || !phoneNumber.trim()) {
+      alert("Por favor completa al menos la Ciudad/Municipio y el Teléfono de contacto.");
       return;
     }
 
@@ -44,10 +122,11 @@ export default function OwnerConfig({ onSaveComplete, onBack }) {
       const docRef = doc(db, 'users', user.uid);
       await updateDoc(docRef, {
         contact: {
-          country: formData.country,
-          city: formData.city,
-          neighborhood: formData.neighborhood,
-          phone: formData.phone
+          country,
+          state: finalState,
+          city: finalCity,
+          neighborhood: neighborhood.trim(),
+          phone: finalPhone
         },
         updatedAt: new Date().toISOString()
       });
@@ -60,6 +139,13 @@ export default function OwnerConfig({ onSaveComplete, onBack }) {
       setLoading(false);
     }
   };
+
+  // Obtener los estados disponibles para el país actual
+  const currentCountryCode = LATAM_COUNTRIES.find(item => item.name === country)?.code;
+  const statesList = currentCountryCode ? STATES_BY_COUNTRY[currentCountryCode] || [] : [];
+
+  // Obtener las ciudades disponibles para el estado/departamento actual
+  const citiesList = CITIES_BY_STATE[state] || [];
 
   return (
     <div className={styles.container}>
@@ -80,59 +166,151 @@ export default function OwnerConfig({ onSaveComplete, onBack }) {
           </p>
         </div>
 
-        <div className={styles.formGroup}>
-          <label htmlFor="phone" className={styles.label}>Número de Celular (con WhatsApp)</label>
-          <input 
-            type="tel" 
-            id="phone"
-            name="phone"
-            value={formData.phone}
-            onChange={handleChange}
-            placeholder="Ej: +573001234567" 
-            required
-            className={styles.input}
-          />
-        </div>
-
+        {/* 1. Selección de País */}
         <div className={styles.formGroup}>
           <label htmlFor="country" className={styles.label}>País</label>
-          <input 
-            type="text" 
+          <select 
             id="country"
-            name="country"
-            value={formData.country}
-            onChange={handleChange}
-            placeholder="Ej: Colombia" 
+            value={country}
+            onChange={handleCountryChange}
             required
-            className={styles.input}
-          />
+            className={styles.select}
+          >
+            {LATAM_COUNTRIES.map((item) => (
+              <option key={item.code} value={item.name}>{item.name}</option>
+            ))}
+          </select>
         </div>
 
-        <div className={styles.row}>
-          <div className={styles.formGroup}>
-            <label htmlFor="city" className={styles.label}>Ciudad</label>
+        {/* 2. Selección de Estado/Departamento */}
+        <div className={styles.formGroup}>
+          <label htmlFor="state" className={styles.label}>Departamento / Estado / Provincia</label>
+          {statesList.length > 0 ? (
+            <>
+              <select 
+                id="state"
+                value={state}
+                onChange={handleStateChange}
+                required
+                className={styles.select}
+              >
+                <option value="">-- Selecciona --</option>
+                {statesList.map((st) => (
+                  <option key={st} value={st}>{st}</option>
+                ))}
+                <option value="Otro">Otro (Escribir manualmente)</option>
+              </select>
+              {state === 'Otro' && (
+                <input 
+                  type="text" 
+                  value={customState}
+                  onChange={(e) => setCustomState(e.target.value)}
+                  placeholder="Escribe tu Departamento/Estado" 
+                  required
+                  className={styles.input}
+                  style={{ marginTop: '8px' }}
+                />
+              )}
+            </>
+          ) : (
             <input 
               type="text" 
-              id="city"
-              name="city"
-              value={formData.city}
-              onChange={handleChange}
-              placeholder="Ej: Medellín" 
+              id="state"
+              value={state === 'Otro' ? customState : state}
+              onChange={(e) => {
+                setState('Otro');
+                setCustomState(e.target.value);
+              }}
+              placeholder="Escribe tu Departamento/Estado" 
               required
               className={styles.input}
             />
-          </div>
+          )}
+        </div>
 
-          <div className={styles.formGroup}>
-            <label htmlFor="neighborhood" className={styles.label}>Barrio (Opcional)</label>
+        {/* 3. Selección de Ciudad/Municipio */}
+        <div className={styles.formGroup}>
+          <label htmlFor="city" className={styles.label}>Ciudad / Municipio</label>
+          {citiesList.length > 0 ? (
+            <>
+              <select 
+                id="city"
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                required
+                className={styles.select}
+              >
+                <option value="">-- Selecciona --</option>
+                {citiesList.map((ct) => (
+                  <option key={ct} value={ct}>{ct}</option>
+                ))}
+                <option value="Otro">Otro (Escribir manualmente)</option>
+              </select>
+              {city === 'Otro' && (
+                <input 
+                  type="text" 
+                  value={customCity}
+                  onChange={(e) => setCustomCity(e.target.value)}
+                  placeholder="Escribe tu Ciudad/Municipio" 
+                  required
+                  className={styles.input}
+                  style={{ marginTop: '8px' }}
+                />
+              )}
+            </>
+          ) : (
             <input 
               type="text" 
-              id="neighborhood"
-              name="neighborhood"
-              value={formData.neighborhood}
-              onChange={handleChange}
-              placeholder="Ej: El Poblado" 
+              id="city"
+              value={city === 'Otro' ? customCity : city}
+              onChange={(e) => {
+                setCity('Otro');
+                setCustomCity(e.target.value);
+              }}
+              placeholder="Escribe tu Ciudad/Municipio" 
+              required
               className={styles.input}
+            />
+          )}
+        </div>
+
+        {/* 4. Barrio (Opcional) */}
+        <div className={styles.formGroup}>
+          <label htmlFor="neighborhood" className={styles.label}>Barrio (Opcional)</label>
+          <input 
+            type="text" 
+            id="neighborhood"
+            value={neighborhood}
+            onChange={(e) => setNeighborhood(e.target.value)}
+            placeholder="Ej: El Poblado" 
+            className={styles.input}
+          />
+        </div>
+
+        {/* 5. Teléfono Móvil (Al final y lado a lado con código de país) */}
+        <div className={styles.formGroup}>
+          <label htmlFor="phone" className={styles.label}>Número de Celular (con WhatsApp)</label>
+          <div className={styles.phoneInputContainer}>
+            <select 
+              value={dialCode}
+              onChange={(e) => setDialCode(e.target.value)}
+              className={styles.dialSelect}
+              title="Código de país"
+            >
+              {LATAM_COUNTRIES.map((item) => (
+                <option key={item.code} value={item.dialCode}>
+                  {item.code} ({item.dialCode})
+                </option>
+              ))}
+            </select>
+            <input 
+              type="tel" 
+              id="phone"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+              placeholder="Ej: 3001234567" 
+              required
+              className={styles.phoneInput}
             />
           </div>
         </div>

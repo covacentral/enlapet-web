@@ -6,6 +6,7 @@
   font-family: 'Outfit', sans-serif;
   padding: 16px;
   padding-bottom: 40px;
+  box-sizing: border-box;
 }
 
 .header {
@@ -45,6 +46,8 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
+  box-sizing: border-box;
+  max-width: 100%;
 }
 
 .infoAlert {
@@ -57,12 +60,19 @@
   line-height: 1.4;
   display: flex;
   gap: 10px;
+  box-sizing: border-box;
+}
+
+.infoIcon {
+  flex-shrink: 0;
 }
 
 .formGroup {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .label {
@@ -71,7 +81,7 @@
   color: hsl(220, 20%, 30%);
 }
 
-.input {
+.input, .select {
   padding: 14px 16px;
   border-radius: 14px;
   border: 1.5px solid hsl(220, 20%, 88%);
@@ -80,9 +90,13 @@
   font-family: inherit;
   transition: border-color 0.2s;
   color: hsl(220, 30%, 20%);
+  background-color: white;
+  width: 100%;
+  box-sizing: border-box;
+  max-width: 100%;
 }
 
-.input:focus {
+.input:focus, .select:focus {
   border-color: hsl(200, 100%, 45%);
 }
 
@@ -90,10 +104,48 @@
   color: hsl(220, 10%, 70%);
 }
 
-.row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+/* Phone input container */
+.phoneInputContainer {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.dialSelect {
+  flex: 0 0 110px;
+  padding: 14px 8px;
+  border-radius: 14px;
+  border: 1.5px solid hsl(220, 20%, 88%);
+  font-size: 0.9rem;
+  outline: none;
+  font-family: inherit;
+  background-color: white;
+  color: hsl(220, 30%, 20%);
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.dialSelect:focus {
+  border-color: hsl(200, 100%, 45%);
+}
+
+.phoneInput {
+  flex: 1;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1.5px solid hsl(220, 20%, 88%);
+  font-size: 0.95rem;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.2s;
+  color: hsl(220, 30%, 20%);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.phoneInput:focus {
+  border-color: hsl(200, 100%, 45%);
 }
 
 .btnSave {
@@ -108,6 +160,8 @@
   cursor: pointer;
   transition: opacity 0.2s, transform 0.1s;
   box-shadow: 0 4px 12px rgba(0, 150, 255, 0.25);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .btnSave:hover {
@@ -137,6 +191,7 @@
   transition: all 0.2s;
   text-align: center;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .btnLogout:hover {
