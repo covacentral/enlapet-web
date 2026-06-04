@@ -18,7 +18,7 @@ export default function AddPetModal({ onSaveComplete, onBack, petId }) {
     name: '',
     species: 'Dog',
     breed: '',
-    age: '',
+    birthDate: '',
     gender: 'Male'
   });
 
@@ -41,7 +41,7 @@ export default function AddPetModal({ onSaveComplete, onBack, petId }) {
             name: data.name || '',
             species: data.species || 'Dog',
             breed: data.breed || '',
-            age: data.age || '',
+            birthDate: data.birthDate || '',
             gender: data.gender || 'Male'
           });
           if (data.photoUrl) {
@@ -105,7 +105,7 @@ export default function AddPetModal({ onSaveComplete, onBack, petId }) {
           name: formData.name,
           species: formData.species,
           breed: formData.breed,
-          age: Number(formData.age) || 0,
+          birthDate: formData.birthDate,
           gender: formData.gender,
           photoUrl,
           updatedAt: new Date().toISOString()
@@ -122,7 +122,7 @@ export default function AddPetModal({ onSaveComplete, onBack, petId }) {
           name: formData.name,
           species: formData.species,
           breed: formData.breed,
-          age: Number(formData.age) || 0,
+          birthDate: formData.birthDate,
           gender: formData.gender,
           photoUrl,
           createdAt: new Date().toISOString(),
@@ -256,15 +256,14 @@ export default function AddPetModal({ onSaveComplete, onBack, petId }) {
           </div>
 
           <div className={styles.formGroup}>
-            <label htmlFor="age" className={styles.label}>Edad (Años)</label>
+            <label htmlFor="birthDate" className={styles.label}>Fecha de Nacimiento</label>
             <input 
-              type="number" 
-              id="age"
-              name="age"
-              value={formData.age}
+              type="date" 
+              id="birthDate"
+              name="birthDate"
+              value={formData.birthDate}
               onChange={handleChange}
-              placeholder="Ej: 3" 
-              min="0"
+              required
               className={styles.input}
             />
           </div>

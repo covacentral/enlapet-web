@@ -24,3 +24,40 @@ export function generateSecureToken() {
   window.crypto.getRandomValues(array);
   return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
 }
+
+/**
+ * Calcula la edad legible de una mascota a partir de su fecha de nacimiento YYYY-MM-DD.
+ * @param {string} birthDateString - Fecha de nacimiento.
+ * @returns {string} Edad legible en años/meses.
+ */
+export function formatPetAge(birthDateString) {
+  if (!birthDateString) return 'Cachorro';
+  
+  const birth = new Date(birthDateString);
+  const now = new Date();
+  
+  // Si la fecha es inválida
+  if (isNaN(birth.getTime())) return 'Cachorro';
+  
+  let months = (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth());
+  if (now.getDate() < birth.getDate()) {
+    months--;
+  }
+  
+  if (months <= 0) {
+    return 'Recién nacido';
+  }
+  
+  if (months < 12) {
+    return `${months} ${months === 1 ? 'mes' : 'meses'}`;
+  }
+  
+  const years = Math.floor(months / 12);
+  const remainingMonths = months % 12;
+  
+  if (remainingMonths === 0) {
+    return `${years} ${years === 1 ? 'año' : 'años'}`;
+  }
+  
+  return `${years} ${years === 1 ? 'año' : 'años'} y ${remainingMonths} ${remainingMonths === 1 ? 'mes' : 'meses'}`;
+}

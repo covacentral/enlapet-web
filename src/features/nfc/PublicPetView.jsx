@@ -3,6 +3,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../core/firebase/firebase';
 import styles from './PublicPetView.module.css';
 import { Phone, ShieldAlert, PawPrint } from 'lucide-react';
+import { formatPetAge } from '../../shared/utils/generators';
 
 export default function PublicPetView({ secureToken }) {
   const [loading, setLoading] = useState(true);
@@ -112,7 +113,7 @@ export default function PublicPetView({ secureToken }) {
         <div className={styles.petMainInfo}>
           <h1 className={styles.petName}>{pet?.name}</h1>
           <span className={styles.ageText}>
-            {pet?.age ? `${pet.age} años de edad` : 'Cachorro'}
+            {formatPetAge(pet?.birthDate)}
           </span>
         </div>
 
