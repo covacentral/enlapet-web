@@ -21,6 +21,7 @@ export default function AddPetModal({ onSaveComplete, onBack, petId }) {
     birthDate: '',
     gender: 'Male'
   });
+  const [customSpecies, setCustomSpecies] = useState('');
 
   // Estado para el recortador de imagen
   const [selectedImageSrc, setSelectedImageSrc] = useState(null);
@@ -37,13 +38,15 @@ export default function AddPetModal({ onSaveComplete, onBack, petId }) {
         if (petSnap.exists()) {
           const data = petSnap.data();
           setExistingPet(data);
+          const isStandardSpecies = data.species === 'Dog' || data.species === 'Cat';
           setFormData({
             name: data.name || '',
-            species: data.species || 'Dog',
+            species: isStandardSpecies ? (data.species || 'Dog') : 'Other',
             breed: data.breed || '',
             birthDate: data.birthDate || '',
             gender: data.gender || 'Male'
           });
+          setCustomSpecies(isStandardSpecies ? '' : (data.species || ''));
           if (data.photoUrl) {
             setCroppedPreviewUrl(data.photoUrl);
           }
@@ -98,12 +101,14 @@ export default function AddPetModal({ onSaveComplete, onBack, petId }) {
         photoUrl = await getDownloadURL(storageRef);
       }
 
+      const finalSpecies = formData.species === 'Other' ? (customSpecies.trim() || 'Otro') : formData.species;
+
       if (petId) {
         // Modo Edición
         const petRef = doc(db, 'pets', petId);
         await updateDoc(petRef, {
           name: formData.name,
-          species: formData.species,
+          species: finalSpecies,
           breed: formData.breed,
           birthDate: formData.birthDate,
           gender: formData.gender,
@@ -120,7 +125,7 @@ export default function AddPetModal({ onSaveComplete, onBack, petId }) {
           epid,
           secureToken,
           name: formData.name,
-          species: formData.species,
+          species: finalSpecies,
           breed: formData.breed,
           birthDate: formData.birthDate,
           gender: formData.gender,
@@ -217,7 +222,12 @@ export default function AddPetModal({ onSaveComplete, onBack, petId }) {
               id="species"
               name="species"
               value={formData.species}
-              onChange={handleChange}
+              onChange={(e) => {
+                handleChange(e);
+                if (e.target.value !== 'Other') {
+                  setCustomSpecies('');
+                }
+              }}
               className={styles.select}
             >
               <option value="Dog">Perro</option>
@@ -240,6 +250,21 @@ export default function AddPetModal({ onSaveComplete, onBack, petId }) {
             </select>
           </div>
         </div>
+
+        {formData.species === 'Other' && (
+          <div className={styles.formGroup}>
+            <label htmlFor="customSpecies" className={styles.label}>Especifica la Especie</label>
+            <input 
+              type="text" 
+              id="customSpecies"
+              value={customSpecies}
+              onChange={(e) => setCustomSpecies(e.target.value)}
+              placeholder="Ej: Loro, Conejo, Hurón" 
+              required
+              className={styles.input}
+            />
+          </div>
+        )}
 
         <div className={styles.row}>
           <div className={styles.formGroup}>
