@@ -1,0 +1,193 @@
+.panelContainer {
+  animation: fadeIn 0.3s ease;
+}
+
+.header {
+  margin-bottom: 24px;
+}
+
+.headerText h2 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: hsl(220, 40%, 15%);
+  margin: 0 0 6px 0;
+}
+
+.headerText p {
+  color: hsl(220, 10%, 55%);
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+@media (min-width: 992px) {
+  .grid {
+    grid-template-columns: 1fr 1.5fr;
+  }
+}
+
+.card {
+  background: white;
+  border: 1px solid hsl(220, 20%, 90%);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.01);
+}
+
+.card h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: hsl(220, 40%, 15%);
+  margin: 0 0 20px 0;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.formGroup label {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: hsl(220, 15%, 50%);
+}
+
+.formGroup input {
+  background: white;
+  border: 1px solid hsl(220, 20%, 85%);
+  border-radius: 10px;
+  color: hsl(220, 40%, 15%);
+  padding: 10px 12px;
+  font-size: 0.92rem;
+  outline: none;
+}
+
+.formGroup input:focus {
+  border-color: #10b981;
+}
+
+.btnAdd {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.listItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: hsl(220, 30%, 99%);
+  border: 1px solid hsl(220, 20%, 94%);
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+
+.vetInfo {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: hsl(220, 20%, 93%);
+  color: hsl(220, 10%, 50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.text h4 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: hsl(220, 40%, 15%);
+}
+
+.email {
+  margin: 2px 0 6px 0;
+  font-size: 0.8rem;
+  color: hsl(220, 10%, 55%);
+  display: flex;
+  align-items: center;
+}
+
+.badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.badge.verified {
+  background: hsl(142, 70%, 95%);
+  color: hsl(142, 70%, 35%);
+}
+
+.badge.pending {
+  background: hsl(45, 100%, 95%);
+  color: hsl(45, 90%, 40%);
+}
+
+.badge.pending_verification {
+  background: hsl(220, 20%, 92%);
+  color: hsl(220, 20%, 50%);
+}
+
+.btnRemove {
+  background: transparent;
+  border: none;
+  color: hsl(350, 90%, 60%);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btnRemove:hover {
+  background: rgba(244, 63, 94, 0.08);
+}
+
+.empty {
+  color: hsl(220, 10%, 60%);
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

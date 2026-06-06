@@ -13,7 +13,8 @@ import {
   Save, 
   DollarSign,
   Plus,
-  ShieldAlert
+  ShieldAlert,
+  Users
 } from 'lucide-react';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../core/firebase/firebase';
@@ -21,15 +22,134 @@ import ClinicEhrPanel from './ClinicEhrPanel';
 import ClinicInventoryPanel from './ClinicInventoryPanel';
 import ClinicBillingPanel from './ClinicBillingPanel';
 import ClinicAppointmentsPanel from './ClinicAppointmentsPanel';
+import ClinicStaffPanel from './ClinicStaffPanel';
 import styles from './ClinicDashboard.module.css';
 
 export default function ClinicDashboard() {
-  const { user, clinicData, logout, refreshProfileData } = useAuth();
-  const [activeTab, setActiveTab] = useState('settings'); // appointments, medical_records, inventory, billing, settings
+  const { user, clinicData, role, logout, refreshProfileData } = useAuth();
+  const [activeTab, setActiveTab] = useState(role === 'staff' ? 'medical_records' : 'settings');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   const status = clinicData?.status || 'pending';
   const plan = clinicData?.plan || 'free';
+
+  // Estados para verificación individual de veterinarios (staff)
+  const [staffStatus, setStaffStatus] = useState(role === 'staff' ? 'pending_verification' : 'verified');
+  const [staffVerifyData, setStaffVerifyData] = useState(null);
+  const [staffLoading, setStaffLoading] = useState(role === 'staff');
+  
+  const [vetForm, setVetForm] = useState({
+    professionalCard: '',
+    licenseUrl: ''
+  });
+  const [submittingVet, setSubmittingVet] = useState(false);
+
+  React.useEffect(() => {
+    if (role !== 'staff' || !user?.uid) return;
+    const docRef = doc(db, 'vet_verifications', user.uid);
+    const unsubscribe = onSnapshot(docRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        setStaffVerifyData(data);
+        setStaffStatus(data.status || 'pending');
+        setVetForm({
+          professionalCard: data.professionalCard || '',
+          licenseUrl: data.licenseUrl || ''
+        });
+      } else {
+        setStaffStatus('pending_verification');
+      }
+      setStaffLoading(false);
+    }, (err) => {
+      console.error("Error al escuchar verificación de vet:", err);
+      setStaffLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [role, user]);
+
+  const handleVetFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 500;
+        const MAX_HEIGHT = 500;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8);
+        setVetForm(prev => ({ ...prev, licenseUrl: compressedBase64 }));
+      };
+      img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleVetSubmit = async (e) => {
+    e.preventDefault();
+    if (!vetForm.professionalCard.trim() || !vetForm.licenseUrl) {
+      alert("Por favor introduce el número de tarjeta y sube la foto.");
+      return;
+    }
+
+    setSubmittingVet(true);
+    try {
+      // 1. Crear solicitud global
+      const docRef = doc(db, 'vet_verifications', user.uid);
+      const cId = clinicData?.id || clinicData?.clinicId || user.uid; // clinicId o uid
+      const cName = clinicData?.name || 'Clínica Vinculada';
+
+      await setDoc(docRef, {
+        vetId: user.uid,
+        name: user.displayName || 'Médico Veterinario',
+        email: user.email,
+        clinicId: cId,
+        clinicName: cName,
+        professionalCard: vetForm.professionalCard,
+        licenseUrl: vetForm.licenseUrl,
+        status: 'pending',
+        updatedAt: new Date().toISOString(),
+        createdAt: new Date().toISOString()
+      });
+
+      // 2. Actualizar el estado en el staff de la clínica
+      const staffDocRef = doc(db, 'clinics', cId, 'staff', user.uid);
+      await setDoc(staffDocRef, {
+        status: 'pending',
+        professionalCard: vetForm.professionalCard,
+        licenseUrl: vetForm.licenseUrl
+      }, { merge: true });
+
+      alert("¡Solicitud de verificación enviada a covacentral!");
+    } catch (err) {
+      console.error("Error al solicitar verificación de vet:", err);
+      alert("Error: " + err.message);
+    } finally {
+      setSubmittingVet(false);
+    }
+  };
 
   // Formulario de Carta de Presentación / Configuración de la Clínica
   const [profileForm, setProfileForm] = useState({
@@ -122,6 +242,7 @@ export default function ClinicDashboard() {
   const menuItems = [
     { id: 'appointments', label: 'Citas Hoy', icon: Calendar },
     { id: 'medical_records', label: 'Historial (EPID)', icon: FileSpreadsheet },
+    { id: 'staff', label: 'Mi Equipo (Veterinarios)', icon: Users },
     { id: 'inventory', label: 'Inventario (Premium)', icon: Package, premium: true },
     { id: 'billing', label: 'Caja y Facturas (Premium)', icon: DollarSign, premium: true },
     { id: 'settings', label: 'Mi Perfil Público', icon: Settings }
@@ -204,7 +325,57 @@ export default function ClinicDashboard() {
 
       {/* Main Content Area */}
       <main className={styles.mainContent}>
-        {status !== 'verified' && activeTab !== 'settings' ? (
+        {role === 'staff' && staffStatus !== 'verified' ? (
+          <div className={styles.lockOverlay}>
+            <div className={styles.lockCard} style={{ maxWidth: '550px' }}>
+              <div className={styles.lockIconContainer}>
+                <ShieldAlert size={48} className={styles.lockIcon} />
+              </div>
+              <h2>Verificación de Veterinario Requerida</h2>
+              <p>
+                Tu cuenta de médico veterinario está asociada a <strong>{clinicData?.name || 'la clínica'}</strong>, pero requiere verificación individual de tu tarjeta profesional por parte de <strong>covacentral</strong> para poder firmar historias clínicas.
+              </p>
+
+              {staffStatus === 'pending' ? (
+                <div style={{ marginTop: '20px', padding: '16px', background: 'rgba(16,185,129,0.05)', border: '1px solid rgba(16,185,129,0.15)', borderRadius: '12px', textAlign: 'left' }}>
+                  <h4 style={{ margin: 0, color: '#10b981', fontWeight: 700 }}>Solicitud de Verificación Pendiente</h4>
+                  <p style={{ margin: '4px 0 0 0', fontSize: '0.88rem', color: '#666', lineHeight: 1.4 }}>
+                    Ya has enviado tu Tarjeta Profesional. El administrador maestro de covacentral está inspeccionando tus documentos. Te notificaremos cuando tu perfil sea aprobado.
+                  </p>
+                </div>
+              ) : (
+                <form onSubmit={handleVetSubmit} className={styles.formGrid} style={{ marginTop: '24px', textAlign: 'left', gap: '16px' }}>
+                  <div className={styles.formGroup}>
+                    <label>Número de Tarjeta Profesional / Registro Médico</label>
+                    <input 
+                      type="text" 
+                      value={vetForm.professionalCard}
+                      onChange={(e) => setVetForm({ ...vetForm, professionalCard: e.target.value })}
+                      placeholder="Ej. MP-54321"
+                      required
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', background: 'hsl(220, 20%, 96%)', padding: '10px', borderRadius: '10px', border: '1px dashed #ccc' }}>
+                      <Upload size={16} />
+                      <span>Subir Foto de Tarjeta Profesional</span>
+                      <input 
+                        type="file" 
+                        accept="image/*"
+                        onChange={handleVetFileChange}
+                        style={{ display: 'none' }}
+                      />
+                    </label>
+                    {vetForm.licenseUrl && <span style={{ color: '#10b981', fontSize: '0.85rem', fontWeight: 600, marginTop: '4px' }}>✓ Foto Cargada</span>}
+                  </div>
+                  <button type="submit" disabled={submittingVet} className={styles.saveButton} style={{ width: '100%', justifyContent: 'center' }}>
+                    {submittingVet ? 'Enviando...' : 'Enviar para Verificación'}
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
+        ) : status !== 'verified' && activeTab !== 'settings' ? (
           <div className={styles.lockOverlay}>
             <div className={styles.lockCard}>
               <div className={styles.lockIconContainer}>
@@ -495,6 +666,10 @@ export default function ClinicDashboard() {
 
             {activeTab === 'medical_records' && (
               <ClinicEhrPanel user={user} clinicData={clinicData} />
+            )}
+
+            {activeTab === 'staff' && (
+              <ClinicStaffPanel user={user} clinicData={clinicData} />
             )}
 
             {activeTab === 'inventory' && (

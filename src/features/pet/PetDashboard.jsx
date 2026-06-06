@@ -34,9 +34,16 @@ export default function PetDashboard({
 
   const isAdmin = user?.email === 'covacentral@gmail.com' || user?.email?.includes('admin');
 
+  // Pestaña activa del administrador maestro
+  const [adminActiveTab, setAdminActiveTab] = useState('epid'); // 'epid' | 'clinics' | 'vets'
+
   // Estados de clínicas para administrador
   const [clinicsList, setClinicsList] = useState([]);
   const [clinicsLoading, setClinicsLoading] = useState(false);
+
+  // Estados de verificado de veterinarios individuales para administrador
+  const [vetVerifications, setVetVerifications] = useState([]);
+  const [vetsLoading, setVetsLoading] = useState(false);
 
   useEffect(() => {
     if (!isAdmin) return;
@@ -57,6 +64,25 @@ export default function PetDashboard({
     return () => unsubscribe();
   }, [isAdmin]);
 
+  useEffect(() => {
+    if (!isAdmin) return;
+    setVetsLoading(true);
+    const q = collection(db, 'vet_verifications');
+    const unsubscribe = onSnapshot(q, (snap) => {
+      const list = [];
+      snap.forEach((doc) => {
+        list.push({ id: doc.id, ...doc.data() });
+      });
+      setVetVerifications(list);
+      setVetsLoading(false);
+    }, (err) => {
+      console.error("Error al obtener solicitudes de veterinarios:", err);
+      setVetsLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [isAdmin]);
+
   const [expandedDocs, setExpandedDocs] = useState({});
 
   const toggleDocs = (clinicId) => {
@@ -66,7 +92,12 @@ export default function PetDashboard({
     }));
   };
 
-  const handleUpdateClinicStatus = async (clinicId, newStatus) => {
+  const handleUpdateClinicStatus = async (clinicId, newStatus, clinicName) => {
+    const confirmation = window.confirm(
+      `Confirmación de 2 Pasos:\n\n¿Estás seguro de que deseas cambiar el estado de la clínica "${clinicName}" a "${newStatus.toUpperCase()}"?`
+    );
+    if (!confirmation) return;
+
     try {
       const docRef = doc(db, 'clinics', clinicId);
       await updateDoc(docRef, {
@@ -89,22 +120,78 @@ export default function PetDashboard({
           updatedAt: new Date().toISOString()
         });
       }
+      alert(`Estado de la clínica "${clinicName}" actualizado.`);
     } catch (err) {
       console.error("Error al actualizar estado de veterinaria:", err);
       alert("Error al actualizar estado.");
     }
   };
 
-  const handleUpdateClinicPlan = async (clinicId, newPlan) => {
+  const handleUpdateClinicPlan = async (clinicId, newPlan, clinicName) => {
+    const confirmation = window.confirm(
+      `Confirmación de 2 Pasos:\n\n¿Estás seguro de que deseas cambiar el plan de suscripción de la clínica "${clinicName}" a "${newPlan.toUpperCase()}"?`
+    );
+    if (!confirmation) return;
+
     try {
       const docRef = doc(db, 'clinics', clinicId);
       await updateDoc(docRef, {
         plan: newPlan,
         updatedAt: new Date().toISOString()
       });
+      alert(`Plan de la clínica "${clinicName}" actualizado.`);
     } catch (err) {
       console.error("Error al actualizar plan de veterinaria:", err);
       alert("Error al actualizar plan.");
+    }
+  };
+
+  const handleUpdateVetStatus = async (vetId, newStatus, vetName) => {
+    const confirmation = window.confirm(
+      `Confirmación de 2 Pasos:\n\n¿Estás seguro de que deseas cambiar el estado de verificación de ${vetName} a "${newStatus.toUpperCase()}"?`
+    );
+    if (!confirmation) return;
+
+    try {
+      const docRef = doc(db, 'vet_verifications', vetId);
+      await updateDoc(docRef, {
+        status: newStatus,
+        updatedAt: new Date().toISOString()
+      });
+
+      // Obtener la información del documento para saber a qué clínica está vinculado
+      const verifySnap = await getDoc(docRef);
+      if (verifySnap.exists()) {
+        const verifyData = verifySnap.data();
+        const clinicId = verifyData.clinicId;
+
+        // Actualizar el estado en el staff de la clínica
+        if (clinicId) {
+          const staffDocRef = doc(db, 'clinics', clinicId, 'staff', vetId);
+          await setDoc(staffDocRef, {
+            status: newStatus
+          }, { merge: true });
+        }
+      }
+
+      // Actualizar el rol del usuario en users a 'staff' si se aprueba, o revertir a 'owner' si se suspende
+      const userRef = doc(db, 'users', vetId);
+      if (newStatus === 'verified') {
+        await updateDoc(userRef, {
+          role: 'staff',
+          updatedAt: new Date().toISOString()
+        });
+      } else {
+        await updateDoc(userRef, {
+          role: 'owner',
+          updatedAt: new Date().toISOString()
+        });
+      }
+
+      alert(`Verificación de ${vetName} actualizada con éxito.`);
+    } catch (err) {
+      console.error("Error al actualizar estado del veterinario:", err);
+      alert("Error al actualizar: " + err.message);
     }
   };
 
@@ -280,165 +367,286 @@ export default function PetDashboard({
       {/* Panel Administrador Maestro */}
       {isAdmin && (
         <div className={styles.adminPanel}>
-          <h2 className={styles.sectionTitle}>Buscador EPID Maestro</h2>
-          <form onSubmit={handleAdminSearch} className={styles.adminSearchForm}>
-            <input 
-              type="text"
-              value={searchInput}
-              onChange={handleSearchInputChange}
-              placeholder="Escribe el EPID de la mascota (ej: ELP-XXXXXX)"
-              className={styles.adminSearchInput}
-            />
-            <button type="submit" disabled={searchLoading} className={styles.adminSearchBtn}>
-              <Search size={18} />
+          {/* Admin Navigation Tabs */}
+          <div className={styles.adminNavTabs} style={{ display: 'flex', gap: '8px', marginBottom: '24px', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px' }}>
+            <button 
+              onClick={() => setAdminActiveTab('epid')}
+              className={`${styles.adminNavTab} ${adminActiveTab === 'epid' ? styles.activeAdminTab : ''}`}
+              style={{ background: 'transparent', border: 'none', padding: '8px 16px', fontWeight: 600, color: adminActiveTab === 'epid' ? '#10b981' : '#666', borderBottom: adminActiveTab === 'epid' ? '3px solid #10b981' : 'none', cursor: 'pointer', outline: 'none' }}
+            >
+              Buscador EPID Maestro
             </button>
-          </form>
+            <button 
+              onClick={() => setAdminActiveTab('clinics')}
+              className={`${styles.adminNavTab} ${adminActiveTab === 'clinics' ? styles.activeAdminTab : ''}`}
+              style={{ background: 'transparent', border: 'none', padding: '8px 16px', fontWeight: 600, color: adminActiveTab === 'clinics' ? '#10b981' : '#666', borderBottom: adminActiveTab === 'clinics' ? '3px solid #10b981' : 'none', cursor: 'pointer', outline: 'none' }}
+            >
+              Solicitudes de Clínicas ({clinicsList.length})
+            </button>
+            <button 
+              onClick={() => setAdminActiveTab('vets')}
+              className={`${styles.adminNavTab} ${adminActiveTab === 'vets' ? styles.activeAdminTab : ''}`}
+              style={{ background: 'transparent', border: 'none', padding: '8px 16px', fontWeight: 600, color: adminActiveTab === 'vets' ? '#10b981' : '#666', borderBottom: adminActiveTab === 'vets' ? '3px solid #10b981' : 'none', cursor: 'pointer', outline: 'none' }}
+            >
+              Solicitudes de Veterinarios ({vetVerifications.length})
+            </button>
+          </div>
 
-          {/* Tarjeta de Mascota Encontrada (Solo foto y botón de copiar NFC) */}
-          {foundPet && (
-            <div className={styles.foundPetCard}>
-              <img 
-                src={foundPet.photoUrl || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="150" height="150" fill="%23ccc"><path d="M12 14c-1.66 0-3 1.34-3 3 0 2 2 3 3 3s3-1 3-3c0-1.66-1.34-3-3-3zm-4.5-3c-.83 0-1.5-.67-1.5-1.5S6.67 8 7.5 8s1.5.67 1.5 1.5S8.33 11 7.5 11zm9 0c-.83 0-1.5-.67-1.5-1.5S15.67 8 16.5 8s1.5.67 1.5 1.5S17.33 11 16.5 11zm-5.25-3.5c-.69 0-1.25-.56-1.25-1.25S10.81 5 11.25 5s1.25.56 1.25 1.25-.56 1.25-1.25 1.25zm2.5 0c-.69 0-1.25-.56-1.25-1.25S13.31 5 13.75 5s1.25.56 1.25 1.25-.56 1.25-1.25 1.25z"/></svg>'} 
-                alt={foundPet.name} 
-                className={styles.foundPetPhoto}
-              />
-              <button 
-                onClick={() => copyNfcLink(foundPet.secureToken)} 
-                className={styles.adminCopyBtn}
-              >
-                <Copy size={16} />
-                <span>Copiar URL NFC de {foundPet.name}</span>
-              </button>
+          {/* TAB 1: EPID Search */}
+          {adminActiveTab === 'epid' && (
+            <div className={styles.adminSection}>
+              <h2 className={styles.sectionTitle}>Buscador EPID Maestro</h2>
+              <form onSubmit={handleAdminSearch} className={styles.adminSearchForm}>
+                <input 
+                  type="text"
+                  value={searchInput}
+                  onChange={handleSearchInputChange}
+                  placeholder="Escribe el EPID de la mascota (ej: ELP-XXXXXX)"
+                  className={styles.adminSearchInput}
+                />
+                <button type="submit" disabled={searchLoading} className={styles.adminSearchBtn}>
+                  <Search size={18} />
+                </button>
+              </form>
+
+              {/* Tarjeta de Mascota Encontrada */}
+              {foundPet && (
+                <div className={styles.foundPetCard}>
+                  <img 
+                    src={foundPet.photoUrl || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="150" height="150" fill="%23ccc"><path d="M12 14c-1.66 0-3 1.34-3 3 0 2 2 3 3 3s3-1 3-3c0-1.66-1.34-3-3-3zm-4.5-3c-.83 0-1.5-.67-1.5-1.5S6.67 8 7.5 8s1.5.67 1.5 1.5S8.33 11 7.5 11zm9 0c-.83 0-1.5-.67-1.5-1.5S15.67 8 16.5 8s1.5.67 1.5 1.5S17.33 11 16.5 11zm-5.25-3.5c-.69 0-1.25-.56-1.25-1.25S10.81 5 11.25 5s1.25.56 1.25 1.25-.56 1.25-1.25 1.25zm2.5 0c-.69 0-1.25-.56-1.25-1.25S13.31 5 13.75 5s1.25.56 1.25 1.25-.56 1.25-1.25 1.25z"/></svg>'} 
+                    alt={foundPet.name} 
+                    className={styles.foundPetPhoto}
+                  />
+                  <button 
+                    onClick={() => copyNfcLink(foundPet.secureToken)} 
+                    className={styles.adminCopyBtn}
+                  >
+                    <Copy size={16} />
+                    <span>Copiar URL NFC de {foundPet.name}</span>
+                  </button>
+                </div>
+              )}
             </div>
           )}
           
-          <div className={styles.divider} />
-          
-          {/* Sección de Gestión de Clínicas (Covacentral Master Panel) */}
-          <div className={styles.adminSection}>
-            <h2 className={styles.sectionTitle}>Gestión de Clínicas enlapet</h2>
-            {clinicsLoading ? (
-              <div className={styles.loadingSpinner}>Cargando veterinarias...</div>
-            ) : clinicsList.length === 0 ? (
-              <div className={styles.emptyState}>No hay veterinarias registradas en la plataforma.</div>
-            ) : (
-              <div className={styles.adminClinicsList}>
-                {clinicsList.map((clinic) => {
-                  const status = clinic.status || 'pending';
-                  const plan = clinic.plan || 'free';
-                  return (
-                    <div key={clinic.id} className={styles.adminClinicCard} style={{ display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'stretch' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', flexWrap: 'wrap', gap: '16px' }}>
-                        <div className={styles.adminClinicInfo}>
-                          {clinic.logoUrl ? (
-                            <img src={clinic.logoUrl} alt={clinic.name} className={styles.adminClinicLogo} />
-                          ) : (
-                            <div className={styles.adminClinicLogoPlaceholder}>
-                              <PawPrint size={24} />
-                            </div>
-                          )}
-                          <div className={styles.adminClinicText}>
-                            <h3>{clinic.name || 'Veterinaria Sin Nombre'}</h3>
-                            <p>{clinic.city || 'Sin ciudad'} - {clinic.neighborhood || 'Sin barrio'}</p>
-                            <p className={styles.adminClinicMeta}>Contacto: {clinic.phone || 'Sin teléfono'} | {clinic.email}</p>
-                            <div className={styles.adminClinicBadges}>
-                              <span className={`${styles.statusBadge} ${styles[status]}`}>
-                                {status === 'verified' ? '✓ Verificado' : status === 'suspended' ? '✕ Suspendido' : '⚡ Pendiente'}
-                              </span>
-                              <span className={`${styles.planBadge} ${styles[plan]}`}>
-                                {plan === 'premium' ? '👑 Premium' : 'Gratuito'}
-                              </span>
+          {/* TAB 2: Clinic Requests */}
+          {adminActiveTab === 'clinics' && (
+            <div className={styles.adminSection}>
+              <h2 className={styles.sectionTitle}>Gestión de Clínicas enlapet</h2>
+              {clinicsLoading ? (
+                <div className={styles.loadingSpinner}>Cargando veterinarias...</div>
+              ) : clinicsList.length === 0 ? (
+                <div className={styles.emptyState}>No hay veterinarias registradas en la plataforma.</div>
+              ) : (
+                <div className={styles.adminClinicsList}>
+                  {clinicsList.map((clinic) => {
+                    const status = clinic.status || 'pending';
+                    const plan = clinic.plan || 'free';
+                    return (
+                      <div key={clinic.id} className={styles.adminClinicCard} style={{ display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'stretch' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', flexWrap: 'wrap', gap: '16px' }}>
+                          <div className={styles.adminClinicInfo}>
+                            {clinic.logoUrl ? (
+                              <img src={clinic.logoUrl} alt={clinic.name} className={styles.adminClinicLogo} />
+                            ) : (
+                              <div className={styles.adminClinicLogoPlaceholder}>
+                                <PawPrint size={24} />
+                              </div>
+                            )}
+                            <div className={styles.adminClinicText}>
+                              <h3>{clinic.name || 'Veterinaria Sin Nombre'}</h3>
+                              <p>{clinic.city || 'Sin ciudad'} - {clinic.neighborhood || 'Sin barrio'}</p>
+                              <p className={styles.adminClinicMeta}>Contacto: {clinic.phone || 'Sin teléfono'} | {clinic.email}</p>
+                              <div className={styles.adminClinicBadges}>
+                                <span className={`${styles.statusBadge} ${styles[status]}`}>
+                                  {status === 'verified' ? '✓ Verificado' : status === 'suspended' ? '✕ Suspendido' : '⚡ Pendiente'}
+                                </span>
+                                <span className={`${styles.planBadge} ${styles[plan]}`}>
+                                  {plan === 'premium' ? '👑 Premium' : 'Gratuito'}
+                                </span>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                        <div className={styles.adminClinicActions}>
-                          <div className={styles.actionGroup}>
-                            <button 
-                              onClick={() => toggleDocs(clinic.id)}
-                              className={styles.adminActionBtn}
-                              style={{ marginRight: '8px', background: expandedDocs[clinic.id] ? '#eee' : 'white', borderColor: expandedDocs[clinic.id] ? '#10b981' : '#ccc' }}
-                            >
-                              <span>{expandedDocs[clinic.id] ? 'Ocultar Documentos' : 'Inspeccionar Docs'}</span>
-                            </button>
-                            <span className={styles.actionGroupLabel}>Verificación:</span>
-                            <button 
-                              onClick={() => handleUpdateClinicStatus(clinic.id, 'verified')}
-                              className={`${styles.adminActionBtn} ${status === 'verified' ? styles.activeVerify : ''}`}
-                              title="Aprobar Verificación"
-                            >
-                              <UserCheck size={14} />
-                              <span>Aprobar</span>
-                            </button>
-                            <button 
-                              onClick={() => handleUpdateClinicStatus(clinic.id, 'suspended')}
-                              className={`${styles.adminActionBtn} ${status === 'suspended' ? styles.activeSuspend : ''}`}
-                              title="Suspender Cuenta"
-                            >
-                              <UserX size={14} />
-                              <span>Suspender</span>
-                            </button>
-                            {status !== 'pending' && (
+                          <div className={styles.adminClinicActions}>
+                            <div className={styles.actionGroup}>
                               <button 
-                                onClick={() => handleUpdateClinicStatus(clinic.id, 'pending')}
+                                onClick={() => toggleDocs(clinic.id)}
                                 className={styles.adminActionBtn}
-                                title="Poner en Pendiente"
+                                style={{ marginRight: '8px', background: expandedDocs[clinic.id] ? '#eee' : 'white', borderColor: expandedDocs[clinic.id] ? '#10b981' : '#ccc' }}
                               >
-                                <span>Marcar Pendiente</span>
+                                <span>{expandedDocs[clinic.id] ? 'Ocultar Docs' : 'Inspeccionar Docs'}</span>
                               </button>
-                            )}
-                          </div>
-                          <div className={styles.actionGroup}>
-                            <span className={styles.actionGroupLabel}>Suscripción:</span>
-                            <button 
-                              onClick={() => handleUpdateClinicPlan(clinic.id, 'premium')}
-                              className={`${styles.adminActionBtn} ${plan === 'premium' ? styles.activePremium : ''}`}
-                              title="Plan Premium (PRO)"
-                            >
-                              <Crown size={14} />
-                              <span>Premium</span>
-                            </button>
-                            <button 
-                              onClick={() => handleUpdateClinicPlan(clinic.id, 'free')}
-                              className={`${styles.adminActionBtn} ${plan === 'free' ? styles.activeFree : ''}`}
-                              title="Plan Gratuito"
-                            >
-                              <span>Gratuito</span>
-                            </button>
+                              <span className={styles.actionGroupLabel}>Verificación:</span>
+                              <button 
+                                onClick={() => handleUpdateClinicStatus(clinic.id, 'verified', clinic.name)}
+                                className={`${styles.adminActionBtn} ${status === 'verified' ? styles.activeVerify : ''}`}
+                                title="Aprobar Verificación"
+                              >
+                                <UserCheck size={14} />
+                                <span>Aprobar</span>
+                              </button>
+                              <button 
+                                onClick={() => handleUpdateClinicStatus(clinic.id, 'suspended', clinic.name)}
+                                className={`${styles.adminActionBtn} ${status === 'suspended' ? styles.activeSuspend : ''}`}
+                                title="Suspender Cuenta"
+                              >
+                                <UserX size={14} />
+                                <span>Suspender</span>
+                              </button>
+                              {status !== 'pending' && (
+                                <button 
+                                  onClick={() => handleUpdateClinicStatus(clinic.id, 'pending', clinic.name)}
+                                  className={styles.adminActionBtn}
+                                  title="Poner en Pendiente"
+                                >
+                                  <span>Marcar Pendiente</span>
+                                </button>
+                              )}
+                            </div>
+                            <div className={styles.actionGroup}>
+                              <span className={styles.actionGroupLabel}>Suscripción:</span>
+                              <button 
+                                onClick={() => handleUpdateClinicPlan(clinic.id, 'premium', clinic.name)}
+                                className={`${styles.adminActionBtn} ${plan === 'premium' ? styles.activePremium : ''}`}
+                                title="Plan Premium (PRO)"
+                              >
+                                <Crown size={14} />
+                                <span>Premium</span>
+                              </button>
+                              <button 
+                                onClick={() => handleUpdateClinicPlan(clinic.id, 'free', clinic.name)}
+                                className={`${styles.adminActionBtn} ${plan === 'free' ? styles.activeFree : ''}`}
+                                  title="Plan Gratuito"
+                              >
+                                <span>Gratuito</span>
+                              </button>
+                            </div>
                           </div>
                         </div>
-                      </div>
 
-                      {expandedDocs[clinic.id] && (
-                        <div className={styles.adminClinicDocsInspection} style={{ display: 'flex', gap: '20px', marginTop: '12px', borderTop: '1px solid #eee', paddingTop: '16px', flexWrap: 'wrap' }}>
-                          <div style={{ flex: 1, minWidth: '240px' }}>
-                            <p style={{ margin: '0 0 8px 0', fontSize: '0.85rem', fontWeight: 700, color: 'hsl(220, 20%, 40%)' }}>
-                              NIT/RUT: <strong style={{ color: '#333' }}>{clinic.nit || 'No Registrado'}</strong>
-                            </p>
-                            {clinic.rutUrl ? (
-                              <img src={clinic.rutUrl} alt="RUT de la clínica" style={{ width: '100%', maxHeight: '350px', objectFit: 'contain', border: '1px solid #e2e8f0', borderRadius: '12px', background: '#f8fafc', padding: '8px' }} />
-                            ) : (
-                              <p style={{ fontStyle: 'italic', fontSize: '0.85rem', color: '#666' }}>No se ha cargado documento RUT</p>
-                            )}
+                        {expandedDocs[clinic.id] && (
+                          <div className={styles.adminClinicDocsInspection} style={{ display: 'flex', gap: '20px', marginTop: '12px', borderTop: '1px solid #eee', paddingTop: '16px', flexWrap: 'wrap' }}>
+                            <div style={{ flex: 1, minWidth: '240px' }}>
+                              <p style={{ margin: '0 0 8px 0', fontSize: '0.85rem', fontWeight: 700, color: 'hsl(220, 20%, 40%)' }}>
+                                NIT/RUT: <strong style={{ color: '#333' }}>{clinic.nit || 'No Registrado'}</strong>
+                              </p>
+                              {clinic.rutUrl ? (
+                                <img src={clinic.rutUrl} alt="RUT de la clínica" style={{ width: '100%', maxHeight: '350px', objectFit: 'contain', border: '1px solid #e2e8f0', borderRadius: '12px', background: '#f8fafc', padding: '8px' }} />
+                              ) : (
+                                <p style={{ fontStyle: 'italic', fontSize: '0.85rem', color: '#666' }}>No se ha cargado documento RUT</p>
+                              )}
+                            </div>
+                            <div style={{ flex: 1, minWidth: '240px' }}>
+                              <p style={{ margin: '0 0 8px 0', fontSize: '0.85rem', fontWeight: 700, color: 'hsl(220, 20%, 40%)' }}>
+                                Tarjeta Profesional / Registro: <strong style={{ color: '#333' }}>{clinic.professionalCard || 'No Registrado'}</strong>
+                              </p>
+                              {clinic.licenseUrl ? (
+                                <img src={clinic.licenseUrl} alt="Tarjeta Profesional" style={{ width: '100%', maxHeight: '350px', objectFit: 'contain', border: '1px solid #e2e8f0', borderRadius: '12px', background: '#f8fafc', padding: '8px' }} />
+                              ) : (
+                                <p style={{ fontStyle: 'italic', fontSize: '0.85rem', color: '#666' }}>No se ha cargado documento de Tarjeta Profesional</p>
+                              )}
+                            </div>
                           </div>
-                          <div style={{ flex: 1, minWidth: '240px' }}>
-                            <p style={{ margin: '0 0 8px 0', fontSize: '0.85rem', fontWeight: 700, color: 'hsl(220, 20%, 40%)' }}>
-                              Tarjeta Profesional / Registro: <strong style={{ color: '#333' }}>{clinic.professionalCard || 'No Registrado'}</strong>
-                            </p>
-                            {clinic.licenseUrl ? (
-                              <img src={clinic.licenseUrl} alt="Tarjeta Profesional" style={{ width: '100%', maxHeight: '350px', objectFit: 'contain', border: '1px solid #e2e8f0', borderRadius: '12px', background: '#f8fafc', padding: '8px' }} />
-                            ) : (
-                              <p style={{ fontStyle: 'italic', fontSize: '0.85rem', color: '#666' }}>No se ha cargado documento de Tarjeta Profesional</p>
-                            )}
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB 3: Vet Requests */}
+          {adminActiveTab === 'vets' && (
+            <div className={styles.adminSection}>
+              <h2 className={styles.sectionTitle}>Gestión de Veterinarios Individuales</h2>
+              {vetsLoading ? (
+                <div className={styles.loadingSpinner}>Cargando solicitudes...</div>
+              ) : vetVerifications.length === 0 ? (
+                <div className={styles.emptyState}>No hay solicitudes de veterinarios registradas.</div>
+              ) : (
+                <div className={styles.adminClinicsList}>
+                  {vetVerifications.map((vet) => {
+                    const status = vet.status || 'pending';
+                    return (
+                      <div key={vet.id} className={styles.adminClinicCard} style={{ display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'stretch' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', flexWrap: 'wrap', gap: '16px' }}>
+                          <div className={styles.adminClinicInfo}>
+                            <div className={styles.adminClinicLogoPlaceholder}>
+                              <User size={24} />
+                            </div>
+                            <div className={styles.adminClinicText}>
+                              <h3>{vet.name || 'Veterinario Sin Nombre'}</h3>
+                              <p>Email: {vet.email}</p>
+                              <p className={styles.adminClinicMeta}>Clínica: {vet.clinicName || 'Sin Clínica'}</p>
+                              <div className={styles.adminClinicBadges}>
+                                <span className={`${styles.statusBadge} ${styles[status]}`}>
+                                  {status === 'verified' ? '✓ Verificado' : status === 'suspended' ? '✕ Suspendido' : '⚡ Pendiente'}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className={styles.adminClinicActions}>
+                            <div className={styles.actionGroup}>
+                              <button 
+                                onClick={() => toggleDocs(vet.id)}
+                                className={styles.adminActionBtn}
+                                style={{ marginRight: '8px', background: expandedDocs[vet.id] ? '#eee' : 'white', borderColor: expandedDocs[vet.id] ? '#10b981' : '#ccc' }}
+                              >
+                                <span>{expandedDocs[vet.id] ? 'Ocultar Docs' : 'Inspeccionar Docs'}</span>
+                              </button>
+                              <span className={styles.actionGroupLabel}>Aprobación:</span>
+                              <button 
+                                onClick={() => handleUpdateVetStatus(vet.id, 'verified', vet.name)}
+                                className={`${styles.adminActionBtn} ${status === 'verified' ? styles.activeVerify : ''}`}
+                                title="Aprobar Veterinario"
+                              >
+                                <UserCheck size={14} />
+                                <span>Aprobar</span>
+                              </button>
+                              <button 
+                                onClick={() => handleUpdateVetStatus(vet.id, 'suspended', vet.name)}
+                                className={`${styles.adminActionBtn} ${status === 'suspended' ? styles.activeSuspend : ''}`}
+                                title="Suspender Cuenta"
+                              >
+                                <UserX size={14} />
+                                <span>Suspender</span>
+                              </button>
+                              {status !== 'pending' && (
+                                <button 
+                                  onClick={() => handleUpdateVetStatus(vet.id, 'pending', vet.name)}
+                                  className={styles.adminActionBtn}
+                                  title="Poner en Pendiente"
+                                >
+                                  <span>Marcar Pendiente</span>
+                                </button>
+                              )}
+                            </div>
                           </div>
                         </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-          
+
+                        {expandedDocs[vet.id] && (
+                          <div className={styles.adminClinicDocsInspection} style={{ display: 'flex', gap: '20px', marginTop: '12px', borderTop: '1px solid #eee', paddingTop: '16px', flexWrap: 'wrap' }}>
+                            <div style={{ flex: 1, minWidth: '240px' }}>
+                              <p style={{ margin: '0 0 8px 0', fontSize: '0.85rem', fontWeight: 700, color: 'hsl(220, 20%, 40%)' }}>
+                                Tarjeta Profesional / Registro: <strong style={{ color: '#333' }}>{vet.professionalCard || 'No Registrado'}</strong>
+                              </p>
+                              {vet.licenseUrl ? (
+                                <img src={vet.licenseUrl} alt="Tarjeta Profesional" style={{ width: '100%', maxHeight: '350px', objectFit: 'contain', border: '1px solid #e2e8f0', borderRadius: '12px', background: '#f8fafc', padding: '8px' }} />
+                              ) : (
+                                <p style={{ fontStyle: 'italic', fontSize: '0.85rem', color: '#666' }}>No se ha cargado documento de Tarjeta Profesional</p>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
           <div className={styles.divider} />
         </div>
       )}

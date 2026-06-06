@@ -81,6 +81,12 @@ service cloud.firestore {
         allow create: if isAuthenticated() && (request.auth.uid == clinicId || exists(/databases/$(database)/documents/clinics/$(clinicId)/staff/$(request.auth.uid)));
         allow read: if isAuthenticated() && request.auth.uid == clinicId;
       }
+
+      // Subcolección de Staff
+      match /staff/{staffId} {
+        allow read: if isAuthenticated();
+        allow write: if isAdmin() || (isAuthenticated() && (request.auth.uid == clinicId || request.auth.uid == staffId));
+      }
     }
 
     // 5. Colección de Permisos Clínicos
@@ -88,6 +94,12 @@ service cloud.firestore {
       allow read: if isAuthenticated() && (request.auth.uid == resource.data.vetId || request.auth.uid == resource.data.ownerId);
       allow create: if isAuthenticated() && request.resource.data.vetId == request.auth.uid;
       allow update, delete: if isAuthenticated() && (request.auth.uid == resource.data.ownerId || request.auth.uid == resource.data.vetId);
+    }
+
+    // 6. Colección de Verificaciones de Veterinarios (Staff)
+    match /vet_verifications/{vetId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin() || (isAuthenticated() && request.auth.uid == vetId);
     }
   }
 }
