@@ -14,6 +14,7 @@ export default function OwnerConfig({ onSaveComplete, onBack }) {
   const [vetRequest, setVetRequest] = useState(null);
   const [vetRequestLoading, setVetRequestLoading] = useState(true);
   const [submittingVet, setSubmittingVet] = useState(false);
+  const [showSolicitudes, setShowSolicitudes] = useState(false);
 
   // Campos para el formulario de solicitud vet
   const [vetForm, setVetForm] = useState({
@@ -661,160 +662,83 @@ export default function OwnerConfig({ onSaveComplete, onBack }) {
         </form>
       )}
 
-      {/* Sección de Registro / Verificación de Veterinaria (Para dueños de mascotas) */}
+      {/* Acordeón de Solicitudes / Alianzas */}
       {!vetRequestLoading && (
-        <div className={styles.secondaryCard} style={{ marginTop: '24px' }}>
-          <h3>Solicitud de Cuenta Veterinaria</h3>
-          <p className={styles.secondaryCardDesc}>
-            Si eres médico veterinario o administras un consultorio clínico, solicita la verificación de tu cuenta para habilitar el portal clínico (agenda en vivo, EMR/EHR, control de caja e inventario).
-          </p>
+        <div className={styles.accordionContainer} style={{ marginTop: '24px' }}>
+          <button 
+            type="button" 
+            className={styles.accordionHeader} 
+            onClick={() => setShowSolicitudes(!showSolicitudes)}
+            style={{
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '16px',
+              background: 'rgba(255, 255, 255, 0.05)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: '12px',
+              cursor: 'pointer',
+              fontSize: '1rem',
+              fontWeight: '600',
+              color: '#fff',
+              textAlign: 'left'
+            }}
+          >
+            <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              💼 Solicitudes / Alianzas
+            </span>
+            <span>{showSolicitudes ? '▲' : '▼'}</span>
+          </button>
 
-          {vetRequest ? (
-            <div className={styles.vetStatusBox} style={{ margin: '16px 0', padding: '16px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)' }}>
-              <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                {vetRequest.status === 'verified' ? (
-                  <CheckCircle style={{ color: '#10b981' }} size={24} />
-                ) : vetRequest.status === 'suspended' ? (
-                  <ShieldAlert style={{ color: '#ef4444' }} size={24} />
-                ) : (
-                  <ShieldAlert style={{ color: '#f59e0b' }} size={24} />
-                )}
-                <div>
-                  <h4 style={{ margin: 0, fontWeight: 700, fontSize: '0.95rem' }}>
-                    Estado: {vetRequest.status === 'verified' ? 'Aprobado' : vetRequest.status === 'suspended' ? 'Suspendido' : 'Pendiente de Aprobación'}
-                  </h4>
-                  <p style={{ margin: '4px 0 0 0', fontSize: '0.85rem', color: '#888', lineHeight: 1.4 }}>
-                    {vetRequest.status === 'verified' 
-                      ? 'Tu cuenta ha sido aprobada. Por favor cierra sesión y vuelve a iniciarla para cargar las herramientas clínicas.' 
-                      : vetRequest.status === 'suspended'
-                      ? 'Tu acceso ha sido suspendido temporalmente por covacentral.'
-                      : 'Tu documentación está siendo validada por el administrador maestro. Te notificaremos pronto.'}
-                  </p>
+          {showSolicitudes && (
+            <div className={styles.accordionContent} style={{ padding: '20px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.05)', borderTop: 'none', borderRadius: '0 0 12px 12px' }}>
+              <h3 style={{ fontSize: '1.1rem', margin: '0 0 8px 0', color: '#fff', fontWeight: '700' }}>Registrar Consultorio Clínico o Veterinaria</h3>
+              <p className={styles.secondaryCardDesc} style={{ margin: '0 0 16px 0', fontSize: '0.9rem', color: '#ccc', lineHeight: '1.5' }}>
+                Si eres médico veterinario o administras un consultorio clínico, solicita la verificación de tu cuenta para habilitar el portal clínico. Al iniciar el proceso, cerraremos tu sesión actual para que puedas registrarte con tu correo empresarial o corporativo.
+              </p>
+              
+              {vetRequest && (
+                <div className={styles.vetStatusBox} style={{ margin: '0 0 16px 0', padding: '16px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                  <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                    {vetRequest.status === 'verified' ? (
+                      <CheckCircle style={{ color: '#10b981' }} size={24} />
+                    ) : vetRequest.status === 'suspended' ? (
+                      <ShieldAlert style={{ color: '#ef4444' }} size={24} />
+                    ) : (
+                      <ShieldAlert style={{ color: '#f59e0b' }} size={24} />
+                    )}
+                    <div>
+                      <h4 style={{ margin: 0, fontWeight: 700, fontSize: '0.95rem', color: '#fff' }}>
+                        Estado: {vetRequest.status === 'verified' ? 'Aprobado' : vetRequest.status === 'suspended' ? 'Suspendido' : 'Pendiente de Aprobación'}
+                      </h4>
+                      <p style={{ margin: '4px 0 0 0', fontSize: '0.85rem', color: '#888', lineHeight: 1.4 }}>
+                        {vetRequest.status === 'verified' 
+                          ? 'Tu cuenta de clínica ha sido aprobada. Por favor ingresa desde el portal de clínicas.' 
+                          : vetRequest.status === 'suspended'
+                          ? 'Tu acceso ha sido suspendido temporalmente por covacentral.'
+                          : 'Tu documentación está siendo validada por el administrador maestro.'}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          ) : null}
+              )}
 
-          {(!vetRequest || vetRequest.status === 'declined') && (
-            <form onSubmit={handleVetSubmit} className={styles.vetForm} style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div className={styles.formGroup}>
-                <label className={styles.label}>Nombre del Consultorio / Clínica</label>
-                <input 
-                  type="text" 
-                  value={vetForm.clinicName}
-                  onChange={(e) => setVetForm({ ...vetForm, clinicName: e.target.value })}
-                  placeholder="Ej. Clínica Veterinaria San Francisco"
-                  required
-                  className={styles.input}
-                />
-              </div>
-
-              <div style={{ display: 'flex', gap: '12px' }}>
-                <div className={styles.formGroup} style={{ flex: 1 }}>
-                  <label className={styles.label}>Ciudad</label>
-                  <input 
-                    type="text" 
-                    value={vetForm.city}
-                    onChange={(e) => setVetForm({ ...vetForm, city: e.target.value })}
-                    placeholder="Ej. Cali"
-                    required
-                    className={styles.input}
-                  />
-                </div>
-                <div className={styles.formGroup} style={{ flex: 1 }}>
-                  <label className={styles.label}>Barrio</label>
-                  <input 
-                    type="text" 
-                    value={vetForm.neighborhood}
-                    onChange={(e) => setVetForm({ ...vetForm, neighborhood: e.target.value })}
-                    placeholder="Ej. Granada"
-                    className={styles.input}
-                  />
-                </div>
-              </div>
-
-              <div className={styles.formGroup}>
-                <label className={styles.label}>Dirección Exacta</label>
-                <input 
-                  type="text" 
-                  value={vetForm.address}
-                  onChange={(e) => setVetForm({ ...vetForm, address: e.target.value })}
-                  placeholder="Ej. Av 9 N # 12-34"
-                  required
-                  className={styles.input}
-                />
-              </div>
-
-              <div className={styles.formGroup}>
-                <label className={styles.label}>Teléfono de Atención</label>
-                <input 
-                  type="tel" 
-                  value={vetForm.phone}
-                  onChange={(e) => setVetForm({ ...vetForm, phone: e.target.value })}
-                  placeholder="Ej. 3157654321"
-                  required
-                  className={styles.input}
-                />
-              </div>
-
-              <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.08)', margin: '8px 0' }} />
-
-              <div className={styles.formGroup}>
-                <label className={styles.label}>NIT / RUT de la Clínica (o Cédula si es independiente)</label>
-                <input 
-                  type="text" 
-                  value={vetForm.nit}
-                  onChange={(e) => setVetForm({ ...vetForm, nit: e.target.value })}
-                  placeholder="Ej. 900.123.456-7"
-                  required
-                  className={styles.input}
-                />
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <label className={styles.btnSupport} style={{ margin: 0, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                  <Upload size={16} />
-                  <span>Subir Documento RUT (Foto)</span>
-                  <input 
-                    type="file" 
-                    accept="image/*"
-                    onChange={(e) => handleFileChange(e, 'rutUrl')}
-                    style={{ display: 'none' }}
-                  />
-                </label>
-                {vetForm.rutUrl && <span style={{ color: '#10b981', fontSize: '0.85rem', fontWeight: 600 }}>✓ RUT Cargado</span>}
-              </div>
-
-              <div className={styles.formGroup}>
-                <label className={styles.label}>Número de Tarjeta Profesional / Registro Médico</label>
-                <input 
-                  type="text" 
-                  value={vetForm.professionalCard}
-                  onChange={(e) => setVetForm({ ...vetForm, professionalCard: e.target.value })}
-                  placeholder="Ej. MP-12345"
-                  required
-                  className={styles.input}
-                />
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <label className={styles.btnSupport} style={{ margin: 0, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                  <Upload size={16} />
-                  <span>Subir Tarjeta Profesional (Foto)</span>
-                  <input 
-                    type="file" 
-                    accept="image/*"
-                    onChange={(e) => handleFileChange(e, 'licenseUrl')}
-                    style={{ display: 'none' }}
-                  />
-                </label>
-                {vetForm.licenseUrl && <span style={{ color: '#10b981', fontSize: '0.85rem', fontWeight: 600 }}>✓ Tarjeta Profesional Cargada</span>}
-              </div>
-
-              <button type="submit" disabled={submittingVet} className={styles.btnSave} style={{ marginTop: '12px' }}>
-                {submittingVet ? 'Enviando...' : 'Enviar Solicitud de Verificación'}
+              <button
+                type="button"
+                onClick={() => {
+                  if (window.confirm("Para iniciar el registro de enlapet clinic, cerraremos tu sesión actual para que puedas registrar o ingresar con tu cuenta empresarial. ¿Deseas continuar?")) {
+                    localStorage.setItem('auth_portal_mode', 'clinic');
+                    logout();
+                    if (onSaveComplete) onSaveComplete();
+                  }
+                }}
+                className={styles.btnSave}
+                style={{ width: 'auto', padding: '10px 20px', background: 'hsl(142, 70%, 45%)', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer' }}
+              >
+                Solicitar enlapet clinic
               </button>
-            </form>
+            </div>
           )}
         </div>
       )}

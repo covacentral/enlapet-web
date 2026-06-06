@@ -12,7 +12,8 @@ export default function ClinicStaffPanel({ user, clinicData }) {
   // Formulario para agregar staff
   const [newStaff, setNewStaff] = useState({
     name: '',
-    email: ''
+    email: '',
+    subRole: 'veterinario'
   });
 
   useEffect(() => {
@@ -35,7 +36,9 @@ export default function ClinicStaffPanel({ user, clinicData }) {
 
   const handleAddStaff = async (e) => {
     e.preventDefault();
-    if (!newStaff.name.trim() || !newStaff.email.trim()) {
+    const emailClean = newStaff.email.trim().toLowerCase();
+    const nameClean = newStaff.name.trim();
+    if (!nameClean || !emailClean) {
       alert("Por favor completa el nombre y el correo.");
       return;
     }
@@ -44,11 +47,23 @@ export default function ClinicStaffPanel({ user, clinicData }) {
     try {
       // 1. Buscar si el usuario existe en 'users' por su correo
       const usersRef = collection(db, 'users');
-      const q = query(usersRef, where('email', '==', newStaff.email.trim().toLowerCase()));
+      const q = query(usersRef, where('email', '==', emailClean));
       const snap = await getDocs(q);
 
       if (snap.empty) {
-        alert("El veterinario no se ha registrado aún en enlapet. Por favor, pídele que cree una cuenta en la aplicación primero con este correo.");
+        // Fallback: Crear invitación en la colección '/invitations/{email}'
+        const inviteRef = doc(db, 'invitations', emailClean);
+        await setDoc(inviteRef, {
+          email: emailClean,
+          name: nameClean,
+          clinicId: user.uid,
+          clinicName: clinicData?.name || 'Clínica',
+          subRole: newStaff.subRole,
+          createdAt: new Date().toISOString()
+        });
+
+        setNewStaff({ name: '', email: '', subRole: 'veterinario' });
+        alert(`¡Asociado invitado! Como el usuario con correo ${emailClean} aún no se ha registrado, hemos guardado una invitación segura. Cuando esta persona inicie sesión con Google desde el Portal de Asociados usando este correo, su cuenta se configurará automáticamente.`);
         setAdding(false);
         return;
       }
@@ -57,29 +72,39 @@ export default function ClinicStaffPanel({ user, clinicData }) {
       const vetUid = vetUserDoc.id;
 
       // 2. Crear documento de staff en la clínica
+      // Vets inician como 'pending_verification'. Recepción y contabilidad inician como 'verified'.
+      const initialStatus = newStaff.subRole === 'veterinario' ? 'pending_verification' : 'verified';
+
       const staffDocRef = doc(db, 'clinics', user.uid, 'staff', vetUid);
       await setDoc(staffDocRef, {
-        name: newStaff.name.trim(),
-        email: newStaff.email.trim().toLowerCase(),
+        name: nameClean,
+        email: emailClean,
         clinicId: user.uid,
         clinicName: clinicData?.name || 'Clínica',
-        status: 'pending_verification', // pending_verification -> pending -> verified
+        role: 'staff',
+        subRole: newStaff.subRole,
+        status: initialStatus,
         createdAt: new Date().toISOString()
       });
 
-      // 3. Vincular la clínica en el perfil del usuario (role 'staff' y clinicId)
+      // 3. Vincular la clínica en el perfil del usuario (role 'staff', subRole, y clinicId)
       const userRef = doc(db, 'users', vetUid);
       await updateDoc(userRef, {
         clinicId: user.uid,
         role: 'staff',
+        subRole: newStaff.subRole,
         updatedAt: new Date().toISOString()
       });
 
-      setNewStaff({ name: '', email: '' });
-      alert("¡Veterinario agregado! Ahora el veterinario debe iniciar sesión en su cuenta y subir su Tarjeta Profesional para ser verificado.");
+      setNewStaff({ name: '', email: '', subRole: 'veterinario' });
+      if (newStaff.subRole === 'veterinario') {
+        alert("¡Veterinario vinculado! Ahora el médico debe iniciar sesión y cargar su Tarjeta Profesional para ser verificado.");
+      } else {
+        alert("¡Asociado vinculado exitosamente! Ya puede ingresar a su panel asignado.");
+      }
     } catch (err) {
-      console.error("Error al agregar veterinario:", err);
-      alert("Error al agregar veterinario: " + err.message);
+      console.error("Error al agregar personal:", err);
+      alert("Error al agregar: " + err.message);
     } finally {
       setAdding(false);
     }
@@ -120,15 +145,15 @@ export default function ClinicStaffPanel({ user, clinicData }) {
     <div className={styles.panelContainer}>
       <div className={styles.header}>
         <div className={styles.headerText}>
-          <h2>Mi Equipo de Veterinarios</h2>
-          <p>Gestiona los médicos veterinarios autorizados para firmar historias clínicas en tu consultorio.</p>
+          <h2>Mi Equipo y Asociados</h2>
+          <p>Gestiona el personal médico, administrativo y contable autorizado para acceder a tu firma clínica.</p>
         </div>
       </div>
 
       <div className={styles.grid}>
         {/* Formulario de Registro */}
         <div className={styles.card}>
-          <h3>Vincular Nuevo Veterinario</h3>
+          <h3>Vincular Nuevo Colaborador</h3>
           <form onSubmit={handleAddStaff} className={styles.form}>
             <div className={styles.formGroup}>
               <label htmlFor="vetName">Nombre Completo</label>
@@ -137,12 +162,12 @@ export default function ClinicStaffPanel({ user, clinicData }) {
                 type="text"
                 value={newStaff.name}
                 onChange={(e) => setNewStaff({ ...newStaff, name: e.target.value })}
-                placeholder="Nombre del médico"
+                placeholder="Nombre del colaborador"
                 required
               />
             </div>
             <div className={styles.formGroup}>
-              <label htmlFor="vetEmail">Correo Electrónico (Registrado en enlapet)</label>
+              <label htmlFor="vetEmail">Correo Electrónico (Google Mail)</label>
               <input 
                 id="vetEmail"
                 type="email"
@@ -152,20 +177,42 @@ export default function ClinicStaffPanel({ user, clinicData }) {
                 required
               />
             </div>
-            <button type="submit" disabled={adding} className={styles.btnAdd}>
+            <div className={styles.formGroup}>
+              <label htmlFor="vetRole">Área / Rol Designado</label>
+              <select
+                id="vetRole"
+                value={newStaff.subRole}
+                onChange={(e) => setNewStaff({ ...newStaff, subRole: e.target.value })}
+                required
+                style={{
+                  width: '100%',
+                  padding: '10.5px',
+                  borderRadius: '8px',
+                  border: '1px solid #ddd',
+                  background: '#fff',
+                  fontSize: '0.92rem',
+                  color: '#333'
+                }}
+              >
+                <option value="veterinario">Médico Veterinario (Requiere Tarjeta Prof.)</option>
+                <option value="recepcion">Recepción (Acceso a Citas únicamente)</option>
+                <option value="contabilidad">Contabilidad (Acceso a Caja e Inventario únicamente)</option>
+              </select>
+            </div>
+            <button type="submit" disabled={adding} className={styles.btnAdd} style={{ marginTop: '8px' }}>
               <Plus size={16} />
-              <span>{adding ? 'Vinculando...' : 'Vincular Veterinario'}</span>
+              <span>{adding ? 'Vinculando...' : 'Vincular Colaborador'}</span>
             </button>
           </form>
         </div>
 
         {/* Listado de Staff */}
         <div className={styles.card}>
-          <h3>Médicos Vinculados</h3>
+          <h3>Equipo Vinculado</h3>
           {loading ? (
             <p>Cargando personal...</p>
           ) : staffList.length === 0 ? (
-            <p className={styles.empty}>No hay veterinarios vinculados todavía.</p>
+            <p className={styles.empty}>No hay colaboradores vinculados todavía.</p>
           ) : (
             <div className={styles.list}>
               {staffList.map((vet) => {
@@ -179,9 +226,12 @@ export default function ClinicStaffPanel({ user, clinicData }) {
                       <div className={styles.text}>
                         <h4>{vet.name}</h4>
                         <p className={styles.email}><Mail size={12} style={{ marginRight: '4px' }} />{vet.email}</p>
+                        <p style={{ margin: '2px 0', fontSize: '0.82rem', fontWeight: '600', color: 'hsl(142, 60%, 40%)' }}>
+                          Rol: {vet.subRole === 'recepcion' ? 'Recepción' : vet.subRole === 'contabilidad' ? 'Contabilidad' : 'Médico Veterinario'}
+                        </p>
                         <span className={`${styles.badge} ${styles[status]}`}>
                           {status === 'verified' 
-                            ? '✓ Verificado' 
+                            ? '✓ Activo' 
                             : status === 'pending'
                             ? '⚡ Pendiente Aprobación'
                             : '⚠ Esperando Documentación'}

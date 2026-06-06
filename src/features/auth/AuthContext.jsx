@@ -4,7 +4,7 @@ import {
   signOut, 
   onAuthStateChanged 
 } from 'firebase/auth';
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { auth, db, googleProvider } from '../../core/firebase/firebase';
 
 const AuthContext = createContext();
@@ -69,7 +69,7 @@ export function AuthProvider({ children }) {
     return () => unsubscribe();
   }, []);
 
-  const loginWithGoogle = async () => {
+  const loginWithGoogle = async (portalMode = 'owner', clinicType = 'ips') => {
     setLoading(true);
     try {
       const result = await signInWithPopup(auth, googleProvider);
@@ -78,24 +78,128 @@ export function AuthProvider({ children }) {
       const userRef = doc(db, 'users', loggedUser.uid);
       const userSnap = await getDoc(userRef);
       
-      if (!userSnap.exists()) {
-        const initialProfile = {
-          name: loggedUser.displayName || 'Usuario',
+      if (portalMode === 'clinic') {
+        const clinicDataUpdate = {
+          name: loggedUser.displayName || 'Clínica Veterinaria',
           email: loggedUser.email,
-          role: 'owner', // Rol dueño por defecto
-          contact: {
-            country: '',
-            city: '',
-            neighborhood: '',
-            phone: ''
-          },
-          createdAt: new Date().toISOString(),
+          role: 'clinic',
+          clinicType: clinicType,
           updatedAt: new Date().toISOString()
         };
-        await setDoc(userRef, initialProfile);
-        setUserData(initialProfile);
-      } else {
+        
+        if (!userSnap.exists()) {
+          clinicDataUpdate.createdAt = new Date().toISOString();
+          clinicDataUpdate.contact = { country: '', city: '', neighborhood: '', phone: '' };
+          await setDoc(userRef, clinicDataUpdate);
+        } else {
+          await updateDoc(userRef, {
+            role: 'clinic',
+            clinicType: clinicType,
+            updatedAt: new Date().toISOString()
+          });
+        }
+        
+        const clinicRef = doc(db, 'clinics', loggedUser.uid);
+        const clinicSnap = await getDoc(clinicRef);
+        if (!clinicSnap.exists()) {
+          const initialClinic = {
+            id: loggedUser.uid,
+            name: loggedUser.displayName || 'Clínica Veterinaria',
+            email: loggedUser.email,
+            phone: '',
+            address: '',
+            neighborhood: '',
+            city: '',
+            workingHours: { type: 'custom', start: '08:00', end: '18:00' },
+            bio: '',
+            logoUrl: '',
+            socials: { instagram: '', facebook: '', email: loggedUser.email, phone: '' },
+            pricing: { type: 'free', price: 0 },
+            status: 'pending',
+            plan: 'free',
+            clinicType: clinicType,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          };
+          await setDoc(clinicRef, initialClinic);
+        } else {
+          await updateDoc(clinicRef, {
+            clinicType: clinicType,
+            updatedAt: new Date().toISOString()
+          });
+        }
+        
         await fetchProfileData(loggedUser.uid);
+      } else if (portalMode === 'staff') {
+        const emailLower = loggedUser.email.toLowerCase();
+        
+        const inviteRef = doc(db, 'invitations', emailLower);
+        const inviteSnap = await getDoc(inviteRef);
+        
+        if (inviteSnap.exists()) {
+          const inviteData = inviteSnap.data();
+          
+          const staffProfile = {
+            name: loggedUser.displayName || inviteData.name || 'Asociado',
+            email: emailLower,
+            role: 'staff',
+            subRole: inviteData.subRole || 'recepcion',
+            clinicId: inviteData.clinicId,
+            updatedAt: new Date().toISOString()
+          };
+          
+          if (!userSnap.exists()) {
+            staffProfile.createdAt = new Date().toISOString();
+            staffProfile.contact = { country: '', city: '', neighborhood: '', phone: '' };
+            await setDoc(userRef, staffProfile);
+          } else {
+            await updateDoc(userRef, {
+              role: 'staff',
+              subRole: inviteData.subRole || 'recepcion',
+              clinicId: inviteData.clinicId,
+              updatedAt: new Date().toISOString()
+            });
+          }
+          
+          const staffStatus = inviteData.subRole === 'veterinario' ? 'pending_verification' : 'verified';
+          
+          const clinicStaffRef = doc(db, 'clinics', inviteData.clinicId, 'staff', loggedUser.uid);
+          await setDoc(clinicStaffRef, {
+            name: loggedUser.displayName || inviteData.name || 'Asociado',
+            email: emailLower,
+            clinicId: inviteData.clinicId,
+            clinicName: inviteData.clinicName || 'Clínica',
+            role: 'staff',
+            subRole: inviteData.subRole || 'recepcion',
+            status: staffStatus,
+            createdAt: new Date().toISOString()
+          });
+          
+          await deleteDoc(inviteRef);
+          await fetchProfileData(loggedUser.uid);
+        } else {
+          if (userSnap.exists() && userSnap.data().role === 'staff') {
+            await fetchProfileData(loggedUser.uid);
+          } else {
+            await signOut(auth);
+            throw new Error("No tienes ninguna invitación activa o acceso registrado como asociado de clínica para este correo.");
+          }
+        }
+      } else {
+        if (!userSnap.exists()) {
+          const initialProfile = {
+            name: loggedUser.displayName || 'Usuario',
+            email: loggedUser.email,
+            role: 'owner',
+            contact: { country: '', city: '', neighborhood: '', phone: '' },
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          };
+          await setDoc(userRef, initialProfile);
+          setUserData(initialProfile);
+        } else {
+          await fetchProfileData(loggedUser.uid);
+        }
       }
     } catch (error) {
       console.error("Error durante el inicio de sesión con Google:", error);
@@ -172,6 +276,7 @@ export function AuthProvider({ children }) {
     userData,
     clinicData,
     role: userData?.role || null,
+    subRole: userData?.subRole || null,
     loading,
     loginWithGoogle,
     logout,

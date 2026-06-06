@@ -17,20 +17,17 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
-    // 1. Colección de Usuarios (Dueños)
+    // 1. Colección de Usuarios
     match /users/{userId} {
-      allow read, write: if isAdmin() || isOwner(userId);
+      // Permitir leer si es admin, dueño, o si es una clínica para poder vincular personal por email
+      allow read: if isAdmin() || isOwner(userId) || (isAuthenticated() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'clinic');
+      allow write: if isAdmin() || isOwner(userId);
     }
 
     // 2. Colección de Mascotas (Pets)
     match /pets/{petId} {
-      // El dueño o el administrador maestro pueden leer (get/list), actualizar o borrar
       allow read, update, delete: if isAdmin() || (isAuthenticated() && resource.data.ownerId == request.auth.uid);
-      
-      // Permitir la creación de mascotas si se asocian correctamente al creador
       allow create: if isAuthenticated() && request.resource.data.ownerId == request.auth.uid;
-      
-      // Acceso público de lectura: solo a través del token seguro (no por listado general)
       allow get: if true; 
 
       // Subcolección de historial clínico
@@ -42,50 +39,59 @@ service cloud.firestore {
 
     // 3. Mapeo de NFC (secureToken -> petId)
     match /nfc_mappings/{secureToken} {
-      // Lectura pública permitida para resolver la URL del collar NFC
       allow read: if true;
-      
-      // Creación del mapeo: solo si el dueño de la mascota coincide con el autenticado
       allow create: if isAuthenticated() && request.resource.data.ownerId == request.auth.uid;
-      
-      // Solo el dueño o el admin pueden borrar o actualizar su mapeo
       allow update, delete: if isAdmin() || (isAuthenticated() && resource.data.ownerId == request.auth.uid);
     }
 
     // 4. Colección de Clínicas (Clinics)
     match /clinics/{clinicId} {
-      // Cualquiera puede leer la carta de presentación y datos públicos de la clínica
       allow read: if true;
-      
-      // Solo el administrador de la clínica o el admin maestro pueden escribir
       allow write: if isAdmin() || (isAuthenticated() && request.auth.uid == clinicId);
 
-      // Subcolección de Inventario
+      // Subcolección de Inventario: Solo el admin o el contador pueden ver/editar
       match /inventory/{itemId} {
-        allow read, write: if isAuthenticated() && (request.auth.uid == clinicId || exists(/databases/$(database)/documents/clinics/$(clinicId)/staff/$(request.auth.uid)));
+        allow read, write: if isAuthenticated() && (
+          request.auth.uid == clinicId || 
+          (exists(/databases/$(database)/documents/clinics/$(clinicId)/staff/$(request.auth.uid)) && 
+           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.subRole == 'contabilidad')
+        );
       }
 
-      // Subcolección de Facturas
+      // Subcolección de Facturas: Solo el admin o el contador pueden ver/editar
       match /invoices/{invoiceId} {
-        allow read, write: if isAuthenticated() && (request.auth.uid == clinicId || exists(/databases/$(database)/documents/clinics/$(clinicId)/staff/$(request.auth.uid)));
+        allow read, write: if isAuthenticated() && (
+          request.auth.uid == clinicId || 
+          (exists(/databases/$(database)/documents/clinics/$(clinicId)/staff/$(request.auth.uid)) && 
+           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.subRole == 'contabilidad')
+        );
       }
 
-      // Subcolección de Citas
+      // Subcolección de Citas: Solo admin, el dueño de la mascota, o staff con rol recepcion/veterinario
       match /appointments/{appointmentId} {
         allow create: if isAuthenticated();
-        allow read, update, delete: if isAuthenticated() && (request.auth.uid == clinicId || resource.data.ownerId == request.auth.uid || request.resource.data.ownerId == request.auth.uid);
+        allow read, update, delete: if isAuthenticated() && (
+          request.auth.uid == clinicId || 
+          resource.data.ownerId == request.auth.uid || 
+          (exists(/databases/$(database)/documents/clinics/$(clinicId)/staff/$(request.auth.uid)) && 
+           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.subRole in ['recepcion', 'veterinario'])
+        );
       }
 
       // Subcolección de Logs de Auditoría
       match /audit_logs/{logId} {
-        allow create: if isAuthenticated() && (request.auth.uid == clinicId || exists(/databases/$(database)/documents/clinics/$(clinicId)/staff/$(request.auth.uid)));
+        allow create: if isAuthenticated() && (
+          request.auth.uid == clinicId || 
+          (exists(/databases/$(database)/documents/clinics/$(clinicId)/staff/$(request.auth.uid)) && 
+           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.subRole == 'veterinario')
+        );
         allow read: if isAuthenticated() && request.auth.uid == clinicId;
       }
 
-      // Subcolección de Staff
+      // Subcolección de Staff: solo admin o el staff mismo pueden leer
       match /staff/{staffId} {
-        allow read: if isAuthenticated();
-        allow write: if isAdmin() || (isAuthenticated() && (request.auth.uid == clinicId || request.auth.uid == staffId));
+        allow read: if isAdmin() || (isAuthenticated() && (request.auth.uid == clinicId || request.auth.uid == staffId));
+        allow write: if isAdmin() || (isAuthenticated() && request.auth.uid == clinicId);
       }
     }
 
@@ -98,9 +104,14 @@ service cloud.firestore {
 
     // 6. Colección de Verificaciones de Veterinarios (Staff)
     match /vet_verifications/{vetId} {
-      allow read: if isAuthenticated();
+      allow read: if isAdmin() || (isAuthenticated() && request.auth.uid == vetId);
       allow write: if isAdmin() || (isAuthenticated() && request.auth.uid == vetId);
+    }
+
+    // 7. Colección de Invitaciones
+    match /invitations/{email} {
+      allow read: if isAuthenticated() && request.auth.token.email.lower() == email;
+      allow write: if isAdmin() || (isAuthenticated() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'clinic');
     }
   }
 }
-

@@ -16,7 +16,7 @@ import {
   ShieldAlert,
   Users
 } from 'lucide-react';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, setDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '../../core/firebase/firebase';
 import ClinicEhrPanel from './ClinicEhrPanel';
 import ClinicInventoryPanel from './ClinicInventoryPanel';
@@ -26,17 +26,27 @@ import ClinicStaffPanel from './ClinicStaffPanel';
 import styles from './ClinicDashboard.module.css';
 
 export default function ClinicDashboard() {
-  const { user, clinicData, role, logout, refreshProfileData } = useAuth();
-  const [activeTab, setActiveTab] = useState(role === 'staff' ? 'medical_records' : 'settings');
+  const { user, clinicData, role, subRole, logout, refreshProfileData } = useAuth();
+  const [activeTab, setActiveTab] = useState(() => {
+    if (role === 'staff') {
+      if (subRole === 'recepcion') return 'appointments';
+      if (subRole === 'contabilidad') return 'inventory';
+      return 'medical_records';
+    }
+    return 'settings';
+  });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   const status = clinicData?.status || 'pending';
   const plan = clinicData?.plan || 'free';
 
   // Estados para verificación individual de veterinarios (staff)
-  const [staffStatus, setStaffStatus] = useState(role === 'staff' ? 'pending_verification' : 'verified');
+  const [staffStatus, setStaffStatus] = useState(() => {
+    if (role === 'staff' && subRole === 'veterinario') return 'pending_verification';
+    return 'verified';
+  });
   const [staffVerifyData, setStaffVerifyData] = useState(null);
-  const [staffLoading, setStaffLoading] = useState(role === 'staff');
+  const [staffLoading, setStaffLoading] = useState(role === 'staff' && subRole === 'veterinario');
   
   const [vetForm, setVetForm] = useState({
     professionalCard: '',
@@ -45,7 +55,7 @@ export default function ClinicDashboard() {
   const [submittingVet, setSubmittingVet] = useState(false);
 
   React.useEffect(() => {
-    if (role !== 'staff' || !user?.uid) return;
+    if (role !== 'staff' || subRole !== 'veterinario' || !user?.uid) return;
     const docRef = doc(db, 'vet_verifications', user.uid);
     const unsubscribe = onSnapshot(docRef, (docSnap) => {
       if (docSnap.exists()) {
@@ -239,7 +249,7 @@ export default function ClinicDashboard() {
     }
   };
 
-  const menuItems = [
+  const baseMenuItems = [
     { id: 'appointments', label: 'Citas Hoy', icon: Calendar },
     { id: 'medical_records', label: 'Historial (EPID)', icon: FileSpreadsheet },
     { id: 'staff', label: 'Mi Equipo (Veterinarios)', icon: Users },
@@ -247,6 +257,22 @@ export default function ClinicDashboard() {
     { id: 'billing', label: 'Caja y Facturas (Premium)', icon: DollarSign, premium: true },
     { id: 'settings', label: 'Mi Perfil Público', icon: Settings }
   ];
+
+  const menuItems = baseMenuItems.filter(item => {
+    if (role === 'clinic') return true;
+    if (role === 'staff') {
+      if (subRole === 'recepcion') {
+        return item.id === 'appointments';
+      }
+      if (subRole === 'contabilidad') {
+        return item.id === 'inventory' || item.id === 'billing';
+      }
+      if (subRole === 'veterinario') {
+        return item.id === 'appointments' || item.id === 'medical_records';
+      }
+    }
+    return false;
+  });
 
   return (
     <div className={styles.container}>
@@ -277,7 +303,11 @@ export default function ClinicDashboard() {
         <div className={styles.sidebarFooter}>
           <div className={styles.userInfo}>
             <p className={styles.userName}>{clinicData?.name || 'Veterinaria'}</p>
-            <p className={styles.userRole}>Administrador</p>
+            <p className={styles.userRole}>
+              {role === 'staff' 
+                ? (subRole === 'recepcion' ? 'Recepción' : subRole === 'contabilidad' ? 'Contabilidad' : 'Médico Veterinario')
+                : 'Administrador'}
+            </p>
           </div>
           <button onClick={logout} className={styles.logoutButton} aria-label="Cerrar sesión">
             <LogOut size={18} />
