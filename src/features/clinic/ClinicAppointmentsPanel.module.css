@@ -1,0 +1,288 @@
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  font-family: 'Outfit', sans-serif;
+  color: #e2e8f0;
+}
+
+.header {
+  margin-bottom: 32px;
+}
+
+.header h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 6px 0;
+}
+
+.header p {
+  color: #9ca3af;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.loader, .emptyState {
+  text-align: center;
+  padding: 60px 20px;
+  color: #9ca3af;
+  font-size: 1rem;
+}
+
+/* Grid de Citas */
+.appointmentsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+.appCard {
+  background-color: #111827;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 20px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.appCard:hover {
+  transform: translateY(-2px);
+  border-color: rgba(16, 185, 129, 0.2);
+}
+
+.appCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  gap: 12px;
+}
+
+.petBadgeBlock {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.petNameTag {
+  font-size: 0.75rem;
+  font-weight: 700;
+  background-color: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+
+.statusBadge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 6px;
+  text-transform: uppercase;
+}
+
+.requested {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}
+
+.confirmed {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.rejected {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.rescheduled_by_vet {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+}
+
+.pending_payment {
+  background-color: rgba(139, 92, 246, 0.1);
+  color: #8b5cf6;
+}
+
+.appDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+  margin-bottom: 24px;
+}
+
+.detailItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #cbd5e1;
+  font-size: 0.88rem;
+}
+
+.divider {
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.05);
+  margin: 4px 0;
+}
+
+.responsibleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.blockTitle {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.phoneLink {
+  color: #10b981;
+  text-decoration: none;
+}
+
+.phoneLink:hover {
+  text-decoration: underline;
+}
+
+/* Acciones */
+.appActions {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.approveBtn, .rescheduleBtn, .rejectBtn {
+  border: none;
+  border-radius: 10px;
+  padding: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  flex: 1;
+}
+
+.approveBtn {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.approveBtn:hover {
+  background-color: #10b981;
+  color: #fff;
+}
+
+.rescheduleBtn {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+}
+
+.rescheduleBtn:hover {
+  background-color: #f59e0b;
+  color: #fff;
+}
+
+.rejectBtn {
+  background-color: rgba(239, 68, 68, 0.08);
+  color: #f87171;
+  flex: none;
+  width: 40px;
+}
+
+.rejectBtn:hover {
+  background-color: #ef4444;
+  color: #fff;
+}
+
+.waitingNotice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #f59e0b;
+  font-size: 0.82rem;
+  background-color: rgba(245, 158, 11, 0.05);
+  padding: 10px;
+  border-radius: 10px;
+  width: 100%;
+}
+
+.completedNotice {
+  color: #6b7280;
+  font-size: 0.85rem;
+  font-style: italic;
+  text-align: center;
+  width: 100%;
+}
+
+/* Formulario Reasignar */
+.rescheduleForm {
+  background-color: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  padding: 12px;
+  border-radius: 12px;
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rescheduleForm label {
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+.rescheduleInputGroup {
+  display: flex;
+  gap: 8px;
+}
+
+.rescheduleInputGroup select {
+  background-color: #1f2937;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  color: #fff;
+  padding: 8px;
+  font-size: 0.85rem;
+  outline: none;
+  width: 100%;
+}
+
+.formBtnGroup {
+  display: flex;
+  gap: 4px;
+}
+
+.formConfirmBtn {
+  background-color: #10b981;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.formCancelBtn {
+  background-color: #374151;
+  color: #9ca3af;
+  border: none;
+  border-radius: 8px;
+  padding: 0 10px;
+  font-size: 0.82rem;
+  cursor: pointer;
+}

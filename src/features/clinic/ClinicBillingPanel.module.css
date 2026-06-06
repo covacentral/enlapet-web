@@ -1,0 +1,540 @@
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  font-family: 'Outfit', sans-serif;
+  color: #e2e8f0;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.header h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 6px 0;
+}
+
+.header p {
+  color: #9ca3af;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.addBtn {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+  transition: all 0.2s ease;
+}
+
+.addBtn:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-1px);
+}
+
+/* Ledger Balance Cards */
+.ledgerGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+.ledgerCard, .ledgerCardTotal {
+  background-color: #111827;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ledgerCardTotal {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(5, 150, 105, 0.08) 100%);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.ledgerHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+}
+
+.ledgerCardTotal .ledgerHeader {
+  color: #10b981;
+}
+
+.cashIcon {
+  color: #10b981;
+}
+
+.transferIcon {
+  color: #3b82f6;
+}
+
+.cardIcon {
+  color: #818cf8;
+}
+
+.totalIcon {
+  color: #10b981;
+}
+
+.ledgerCard h3, .ledgerCardTotal h3 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+.ledgerCardTotal h3 {
+  color: #10b981;
+}
+
+/* Historial Facturas */
+.tableCard {
+  background-color: #111827;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 20px;
+  padding: 32px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.tableCard h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #fff;
+  margin: 0 0 24px 0;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.table th {
+  background-color: rgba(255, 255, 255, 0.02);
+  color: #9ca3af;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 16px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.table td {
+  padding: 16px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  font-size: 0.95rem;
+}
+
+.clientName {
+  font-weight: 600;
+  color: #fff;
+}
+
+.totalCell {
+  font-weight: 600;
+  color: #10b981;
+}
+
+.loader, .emptyState {
+  text-align: center;
+  padding: 60px 20px;
+  color: #9ca3af;
+  font-size: 1rem;
+}
+
+/* Modales */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(2, 6, 23, 0.8);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+  padding: 20px;
+}
+
+.modal {
+  background-color: #111827;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 24px;
+  width: 100%;
+  max-width: 680px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.modalHeader h3 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+.closeBtn {
+  background: transparent;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 8px;
+  display: flex;
+}
+
+.closeBtn:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+
+.modalBody {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow-y: auto;
+}
+
+.formSection {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background-color: rgba(255, 255, 255, 0.01);
+  border: 1px solid rgba(255, 255, 255, 0.02);
+  padding: 18px;
+  border-radius: 14px;
+}
+
+.formSectionRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.sectionLabel {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #10b981;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.formGroupRow {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 16px;
+}
+
+.formGroup label {
+  font-size: 0.85rem;
+  color: #9ca3af;
+}
+
+.formGroup input, .formGroup select {
+  background-color: #1f2937;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  color: #fff;
+  padding: 12px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  outline: none;
+  width: 100%;
+}
+
+.formGroup input:focus, .formGroup select:focus {
+  border-color: #10b981;
+}
+
+/* Item Rows */
+.itemHeaderBlock {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.addItemBtn {
+  background-color: #1f2937;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: #cbd5e1;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.addItemBtn:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-color: #10b981;
+  color: #fff;
+}
+
+.itemsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.itemRow {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background-color: rgba(0, 0, 0, 0.15);
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+.inventorySelect {
+  background-color: #111827;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  color: #9ca3af;
+  padding: 6px 10px;
+  font-size: 0.82rem;
+  width: 100%;
+  outline: none;
+  cursor: pointer;
+}
+
+.itemRowInputs {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.descInput {
+  flex: 2;
+  background-color: #1f2937;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  color: #fff;
+  padding: 8px 12px;
+  font-size: 0.88rem;
+  outline: none;
+}
+
+.qtyInput {
+  width: 60px;
+  background-color: #1f2937;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  color: #fff;
+  padding: 8px;
+  font-size: 0.88rem;
+  text-align: center;
+  outline: none;
+}
+
+.priceInput {
+  width: 110px;
+  background-color: #1f2937;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  color: #fff;
+  padding: 8px 12px;
+  font-size: 0.88rem;
+  outline: none;
+}
+
+.taxSelect {
+  width: 100px;
+  background-color: #1f2937;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  color: #fff;
+  padding: 8px;
+  font-size: 0.88rem;
+  outline: none;
+  cursor: pointer;
+}
+
+.removeRowBtn {
+  background: transparent;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  display: flex;
+}
+
+.removeRowBtn:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+/* Totales */
+.totalsSummary {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background-color: rgba(0, 0, 0, 0.15);
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.totalLine {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.88rem;
+  color: #9ca3af;
+}
+
+.totalLine strong {
+  color: #e2e8f0;
+}
+
+.grandTotal {
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 8px;
+  margin-top: 4px;
+  font-size: 1rem;
+  color: #fff;
+}
+
+.grandTotal strong {
+  color: #10b981;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 16px;
+}
+
+.cancelBtn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #cbd5e1;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cancelBtn:hover {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.saveBtn {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.saveBtn:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+}
+
+@media (max-width: 900px) {
+  .ledgerGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .addBtn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .ledgerGrid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .formSectionRow {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .itemRowInputs {
+    flex-wrap: wrap;
+  }
+
+  .descInput {
+    flex: none;
+    width: 100%;
+  }
+
+  .modal {
+    border-radius: 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    max-height: 100vh;
+  }
+
+  .modalBody {
+    padding: 20px;
+  }
+}

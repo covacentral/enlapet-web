@@ -1,0 +1,544 @@
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: 'Outfit', sans-serif;
+  color: #e2e8f0;
+}
+
+.searchHeader {
+  background-color: #111827;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 20px;
+  padding: 32px;
+  margin-bottom: 32px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.searchHeader h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 6px 0;
+}
+
+.searchHeader p {
+  color: #9ca3af;
+  font-size: 0.95rem;
+  margin: 0 0 24px 0;
+}
+
+.searchForm {
+  display: flex;
+  gap: 12px;
+  max-width: 500px;
+}
+
+.searchInput {
+  background-color: #1f2937;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  color: #fff;
+  padding: 14px 16px;
+  font-size: 1rem;
+  width: 100%;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.searchInput:focus {
+  border-color: #10b981;
+  background-color: #1a2333;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.15);
+}
+
+.searchBtn {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 0 28px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+  transition: all 0.2s ease;
+}
+
+.searchBtn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-1px);
+}
+
+.searchBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Ficha Resumen de Mascota */
+.petOverviewCard {
+  background-color: #111827;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 20px;
+  padding: 24px;
+  margin-bottom: 32px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 16px;
+  object-fit: cover;
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+}
+
+.petInfoGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  width: 100%;
+}
+
+.petInfoGrid p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #9ca3af;
+}
+
+.petInfoGrid strong {
+  color: #f3f4f6;
+  font-size: 0.95rem;
+}
+
+.petInfoGrid h3 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 2px 0;
+}
+
+/* Grid Principal EHR */
+.mainGrid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 32px;
+}
+
+.formContainer {
+  background-color: #111827;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 20px;
+  padding: 32px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+}
+
+.formHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 16px;
+}
+
+.formHeader h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #fff;
+  margin: 0;
+}
+
+.authBadgeSuccess, .authBadgePending, .authBadgeNone {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.authBadgeSuccess {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.authBadgePending {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+}
+
+.authBadgeNone {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.clinicalForm {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.sectionDivider {
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #10b981;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 6px;
+  margin-top: 10px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.formGroupRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.formGroupRow4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.formGroup label {
+  font-size: 0.85rem;
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+.formGroup input, .formGroup select, .formGroup textarea {
+  background-color: #1f2937;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  color: #fff;
+  padding: 12px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.formGroup input:focus, .formGroup select:focus, .formGroup textarea:focus {
+  border-color: #10b981;
+  background-color: #1a2333;
+}
+
+.saveRecordBtn {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 14px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  margin-top: 12px;
+}
+
+.saveRecordBtn:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-1px);
+}
+
+/* Bloqueo del Formulario */
+.blockedFormScreen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 48px 20px;
+  flex: 1;
+}
+
+.lockIcon {
+  color: #ef4444;
+  margin-bottom: 20px;
+}
+
+.blockedFormScreen h4 {
+  font-size: 1.15rem;
+  color: #fff;
+  margin: 0 0 10px 0;
+}
+
+.blockedFormScreen p {
+  color: #9ca3af;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  margin: 0 0 24px 0;
+  max-width: 380px;
+}
+
+.requestBtn {
+  background-color: #10b981;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.requestBtn:hover:not(:disabled) {
+  background-color: #059669;
+}
+
+.requestBtn:disabled {
+  opacity: 0.5;
+}
+
+/* Historial Timeline */
+.recordsListContainer {
+  background-color: #111827;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 20px;
+  padding: 32px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  max-height: 700px;
+  overflow-y: auto;
+}
+
+.recordsListContainer h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #fff;
+  margin: 0 0 24px 0;
+}
+
+.noRecords {
+  color: #6b7280;
+  font-size: 0.95rem;
+}
+
+.recordsTimeline {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: relative;
+  padding-left: 20px;
+  border-left: 2px solid rgba(255, 255, 255, 0.05);
+}
+
+.timelineItem {
+  background-color: rgba(255, 255, 255, 0.01);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  border-radius: 14px;
+  padding: 18px;
+  position: relative;
+}
+
+.timelineItem::before {
+  content: '';
+  position: absolute;
+  left: -27px;
+  top: 22px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: #10b981;
+  border: 3px solid #111827;
+}
+
+.timelineHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.recordTypeTag {
+  font-size: 0.75rem;
+  font-weight: 700;
+  background-color: #1f2937;
+  color: #9ca3af;
+  padding: 2px 8px;
+  border-radius: 6px;
+  text-transform: uppercase;
+}
+
+.recordDate {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.recordClinicName {
+  font-size: 0.88rem;
+  color: #9ca3af;
+  margin: 0 0 8px 0;
+}
+
+.recordDiag, .recordPrescription {
+  font-size: 0.9rem;
+  color: #cbd5e1;
+  margin: 0 0 4px 0;
+  line-height: 1.4;
+}
+
+.recordSignatureBlock {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #10b981;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  padding-top: 8px;
+}
+
+.signatureCheckIcon {
+  color: #10b981;
+}
+
+/* Modal de Firma */
+.signatureOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(2, 6, 23, 0.8);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 600;
+  padding: 20px;
+}
+
+.signatureCard {
+  background-color: #111827;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  padding: 32px;
+  width: 100%;
+  max-width: 460px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.signatureHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #10b981;
+  margin-bottom: 16px;
+}
+
+.signatureHeader h3 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+.signatureBody p {
+  color: #9ca3af;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  margin: 0 0 24px 0;
+}
+
+.signatureError {
+  color: #ef4444;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  background-color: rgba(239, 68, 68, 0.08);
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(239, 68, 68, 0.15);
+  margin-bottom: 16px;
+}
+
+.signatureFormGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.signatureFormGroup label {
+  font-size: 0.85rem;
+  color: #9ca3af;
+}
+
+.pinInput {
+  background-color: #1f2937;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  color: #fff;
+  padding: 14px;
+  font-size: 1.3rem;
+  text-align: center;
+  letter-spacing: 8px;
+  font-weight: bold;
+  width: 100%;
+  outline: none;
+}
+
+.pinInput:focus {
+  border-color: #10b981;
+}
+
+.signatureActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.signatureCancelBtn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #cbd5e1;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.signatureConfirmBtn {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+@media (max-width: 900px) {
+  .mainGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .petInfoGrid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .formGroupRow4 {
+    grid-template-columns: 1fr 1fr;
+  }
+}

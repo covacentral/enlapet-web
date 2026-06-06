@@ -1,0 +1,328 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(2, 6, 23, 0.8);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+  padding: 20px;
+}
+
+.modal {
+  background-color: #111827;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 24px;
+  width: 100%;
+  max-width: 600px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 32px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.modalHeader h2 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+.closeButton {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 8px;
+  display: flex;
+  transition: all 0.2s ease;
+}
+
+.closeButton:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+
+.modalBody {
+  padding: 32px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Disclaimer Box */
+.disclaimerBox {
+  background-color: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.15);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.disclaimerIcon {
+  color: #f59e0b;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.disclaimerBox p {
+  color: #fef3c7;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  margin: 0;
+}
+
+/* Form Styles */
+.formSection {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.formSectionRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.sectionLabel {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #10b981;
+  margin-bottom: 4px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.formGroup label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #94a3b8;
+}
+
+.inputIconWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.inputIcon {
+  position: absolute;
+  left: 14px;
+  color: #64748b;
+  pointer-events: none;
+}
+
+.inputIconWrapper input, .inputIconWrapper select {
+  background-color: #1f2937;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  color: #fff;
+  padding: 12px 12px 12px 42px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  width: 100%;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.inputIconWrapper input:focus, .inputIconWrapper select:focus {
+  border-color: #10b981;
+  background-color: #1a2333;
+}
+
+/* Pets List Selection */
+.petsList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background-color: rgba(255, 255, 255, 0.01);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 12px;
+  padding: 14px;
+  max-height: 140px;
+  overflow-y: auto;
+}
+
+.petCheckboxItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #cbd5e1;
+  transition: all 0.2s ease;
+}
+
+.petCheckboxItem:hover {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.petChecked {
+  background-color: rgba(16, 185, 129, 0.06) !important;
+  color: #10b981 !important;
+}
+
+.checkIcon {
+  color: #10b981;
+}
+
+.noPetsText {
+  font-size: 0.88rem;
+  color: #ef4444;
+  margin: 0;
+}
+
+/* Habeas Data Section */
+.habeasDataSection {
+  background-color: rgba(255, 255, 255, 0.01);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  padding: 16px;
+  border-radius: 12px;
+  margin-top: 8px;
+}
+
+.habeasCheckbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.habeasCheckbox p {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.habeasCheckbox strong {
+  color: #cbd5e1;
+}
+
+/* Modal Actions */
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 24px;
+  margin-top: 8px;
+}
+
+.cancelButton {
+  background-color: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #cbd5e1;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancelButton:hover {
+  background-color: rgba(255, 255, 255, 0.03);
+  color: #fff;
+}
+
+.submitButton {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.submitButton:hover:not(:disabled) {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+}
+
+.submitButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Success Screen */
+.successScreen {
+  padding: 48px 32px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.successIconBg {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background-color: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: bold;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.15);
+}
+
+.successScreen h3 {
+  font-size: 1.4rem;
+  color: #fff;
+  margin: 0;
+}
+
+.successScreen p {
+  color: #94a3b8;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin: 0;
+  max-width: 360px;
+}
+
+@media (max-width: 640px) {
+  .modal {
+    max-height: 100vh;
+    border-radius: 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  }
+
+  .modalBody {
+    padding: 20px;
+  }
+
+  .formSectionRow {
+    grid-template-columns: 1fr;
+  }
+}

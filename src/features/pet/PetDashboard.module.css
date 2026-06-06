@@ -21,6 +21,37 @@
   letter-spacing: 0.5px;
 }
 
+.navTabs {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  border-bottom: 1.5px solid hsl(220, 20%, 92%);
+  padding-bottom: 8px;
+}
+
+.navTab {
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: hsl(220, 20%, 50%);
+  padding: 8px 16px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.navTab:hover {
+  color: #10b981;
+  background-color: hsl(220, 20%, 97%);
+}
+
+.activeTab {
+  color: #10b981 !important;
+  background-color: rgba(16, 185, 129, 0.08) !important;
+}
+
 .welcomeSection h1 {
   font-size: 1.6rem;
   font-weight: 800;
@@ -52,6 +83,93 @@
   background-color: hsl(220, 20%, 96%);
   color: hsl(350, 90%, 60%);
   border-color: hsl(350, 90%, 90%);
+}
+
+/* Alerta de Permiso Clínico */
+.permissionAlert {
+  background: linear-gradient(135deg, hsl(142, 70%, 97%) 0%, hsl(220, 80%, 97%) 100%);
+  border: 1.5px solid hsl(142, 70%, 90%);
+  border-radius: 24px;
+  padding: 20px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.05);
+  animation: slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.permissionAlertIconContainer {
+  background-color: white;
+  min-width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.1);
+}
+
+.permissionAlertIcon {
+  color: #10b981;
+}
+
+.permissionAlertText {
+  flex: 1;
+}
+
+.permissionAlertText h3 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: hsl(142, 60%, 20%);
+  margin: 0;
+}
+
+.permissionAlertText p {
+  font-size: 0.82rem;
+  color: hsl(220, 30%, 35%);
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+.permissionAlertActions {
+  display: flex;
+  gap: 10px;
+}
+
+.permissionRejectBtn {
+  background-color: transparent;
+  border: 1px solid hsl(220, 20%, 80%);
+  color: hsl(220, 30%, 40%);
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.permissionRejectBtn:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+  color: hsl(350, 90%, 55%);
+  border-color: hsl(350, 90%, 90%);
+}
+
+.permissionApproveBtn {
+  background-color: #10b981;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+  transition: opacity 0.2s;
+}
+
+.permissionApproveBtn:hover {
+  opacity: 0.9;
 }
 
 /* Alerta de Configuración Incompleta */
@@ -824,6 +942,191 @@
   display: block;
   margin-bottom: 2px;
 }
+
+/* Gestor de Clínicas - Admin Panel */
+.adminSection {
+  margin-top: 24px;
+}
+
+.adminClinicsList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.adminClinicCard {
+  background: white;
+  border: 1px solid hsl(220, 20%, 90%);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+@media (min-width: 768px) {
+  .adminClinicCard {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+.adminClinicInfo {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.adminClinicLogo {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 1px solid hsl(220, 20%, 88%);
+}
+
+.adminClinicLogoPlaceholder {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  background-color: hsl(220, 20%, 95%);
+  color: hsl(220, 20%, 60%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.adminClinicText h3 {
+  margin: 0 0 4px 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: hsl(220, 40%, 15%);
+}
+
+.adminClinicText p {
+  margin: 0 0 4px 0;
+  font-size: 0.88rem;
+  color: hsl(220, 10%, 50%);
+}
+
+.adminClinicMeta {
+  font-size: 0.82rem !important;
+  color: hsl(220, 10%, 60%) !important;
+}
+
+.adminClinicBadges {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.statusBadge, .planBadge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  text-transform: uppercase;
+}
+
+.statusBadge.pending {
+  background-color: hsl(45, 100%, 95%);
+  color: hsl(45, 90%, 40%);
+}
+
+.statusBadge.verified {
+  background-color: hsl(142, 70%, 95%);
+  color: hsl(142, 70%, 35%);
+}
+
+.statusBadge.suspended {
+  background-color: hsl(350, 90%, 95%);
+  color: hsl(350, 90%, 45%);
+}
+
+.planBadge.free {
+  background-color: hsl(220, 20%, 92%);
+  color: hsl(220, 20%, 45%);
+}
+
+.planBadge.premium {
+  background-color: hsl(262, 80%, 95%);
+  color: hsl(262, 80%, 45%);
+  background: linear-gradient(135deg, hsl(262, 80%, 96%) 0%, hsl(262, 80%, 92%) 100%);
+  border: 1px solid hsl(262, 80%, 88%);
+}
+
+.adminClinicActions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+@media (min-width: 768px) {
+  .adminClinicActions {
+    align-items: flex-end;
+  }
+}
+
+.actionGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.actionGroupLabel {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: hsl(220, 20%, 55%);
+}
+
+.adminActionBtn {
+  background: white;
+  border: 1px solid hsl(220, 20%, 88%);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: hsl(220, 25%, 35%);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.adminActionBtn:hover {
+  background-color: hsl(220, 20%, 96%);
+}
+
+.activeVerify {
+  background-color: hsl(142, 70%, 35%) !important;
+  border-color: hsl(142, 70%, 35%) !important;
+  color: white !important;
+}
+
+.activeSuspend {
+  background-color: hsl(350, 90%, 45%) !important;
+  border-color: hsl(350, 90%, 45%) !important;
+  color: white !important;
+}
+
+.activePremium {
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
+  border-color: #4f46e5 !important;
+  color: white !important;
+  box-shadow: 0 4px 10px rgba(99, 102, 241, 0.2);
+}
+
+.activeFree {
+  background-color: hsl(220, 20%, 35%) !important;
+  border-color: hsl(220, 20%, 35%) !important;
+  color: white !important;
+}
+
 
 
 

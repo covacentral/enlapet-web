@@ -1,15 +1,25 @@
 import React, { useEffect, useState } from 'react';
-import { collection, query, where, onSnapshot, getDocs } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../core/firebase/firebase';
 import { useAuth } from '../auth/AuthContext';
-import { Settings, LogOut, AlertTriangle, Plus, Copy, Notebook, Heart, Edit2, Search, PawPrint, Phone, ShieldAlert } from 'lucide-react';
+import { Settings, LogOut, AlertTriangle, Plus, Copy, Notebook, Heart, Edit2, Search, PawPrint, Phone, ShieldAlert, UserCheck, UserX, Crown } from 'lucide-react';
 import { formatPetAge } from '../../shared/utils/generators';
 import styles from './PetDashboard.module.css';
 
-export default function PetDashboard({ onNavigateToOwnerConfig, onNavigateToPetDetail, onNavigateToAddPet, onNavigateToEditPet }) {
+export default function PetDashboard({ 
+  petsList = [], 
+  petsLoading = false, 
+  onNavigateToOwnerConfig, 
+  onNavigateToPetDetail, 
+  onNavigateToAddPet, 
+  onNavigateToEditPet,
+  onNavigateToVetDirectory 
+}) {
   const { user, ownerData, logout, isProfileComplete } = useAuth();
-  const [pets, setPets] = useState([]);
-  const [loading, setLoading] = useState(true);
+  
+  // Usar las mascotas y estado cargando pasados por el padre (App.jsx)
+  const pets = petsList;
+  const loading = petsLoading;
 
   // Estado para la orden de la medalla NFC
   const [selectedPetsForMedal, setSelectedPetsForMedal] = useState({});
@@ -24,26 +34,100 @@ export default function PetDashboard({ onNavigateToOwnerConfig, onNavigateToPetD
 
   const isAdmin = user?.email === 'covacentral@gmail.com' || user?.email?.includes('admin');
 
-  // Escuchador en tiempo real de mascotas del dueño
-  useEffect(() => {
-    if (!user) return;
-    const petsRef = collection(db, 'pets');
-    const q = query(petsRef, where('ownerId', '==', user.uid));
+  // Estados de clínicas para administrador
+  const [clinicsList, setClinicsList] = useState([]);
+  const [clinicsLoading, setClinicsLoading] = useState(false);
 
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const petsList = [];
-      querySnapshot.forEach((doc) => {
-        petsList.push({ id: doc.id, ...doc.data() });
+  useEffect(() => {
+    if (!isAdmin) return;
+    setClinicsLoading(true);
+    const q = collection(db, 'clinics');
+    const unsubscribe = onSnapshot(q, (snap) => {
+      const list = [];
+      snap.forEach((doc) => {
+        list.push({ id: doc.id, ...doc.data() });
       });
-      setPets(petsList);
-      setLoading(false);
-    }, (error) => {
-      console.error("Error al escuchar mascotas:", error);
-      setLoading(false);
+      setClinicsList(list);
+      setClinicsLoading(false);
+    }, (err) => {
+      console.error("Error al obtener clínicas:", err);
+      setClinicsLoading(false);
     });
 
     return () => unsubscribe();
-  }, [user]);
+  }, [isAdmin]);
+
+  const handleUpdateClinicStatus = async (clinicId, newStatus) => {
+    try {
+      const docRef = doc(db, 'clinics', clinicId);
+      await updateDoc(docRef, {
+        status: newStatus,
+        updatedAt: new Date().toISOString()
+      });
+    } catch (err) {
+      console.error("Error al actualizar estado de veterinaria:", err);
+      alert("Error al actualizar estado.");
+    }
+  };
+
+  const handleUpdateClinicPlan = async (clinicId, newPlan) => {
+    try {
+      const docRef = doc(db, 'clinics', clinicId);
+      await updateDoc(docRef, {
+        plan: newPlan,
+        updatedAt: new Date().toISOString()
+      });
+    } catch (err) {
+      console.error("Error al actualizar plan de veterinaria:", err);
+      alert("Error al actualizar plan.");
+    }
+  };
+
+  // Estado y escuchador en tiempo real para solicitudes de permisos clínicos
+  const [pendingPermissions, setPendingPermissions] = useState([]);
+
+  useEffect(() => {
+    if (!user || isAdmin) return;
+    const q = query(
+      collection(db, 'clinical_permissions'),
+      where('ownerId', '==', user.uid),
+      where('status', '==', 'pending')
+    );
+
+    const unsubscribe = onSnapshot(q, (snap) => {
+      const list = [];
+      snap.forEach(d => {
+        list.push({ id: d.id, ...d.data() });
+      });
+      setPendingPermissions(list);
+    });
+
+    return () => unsubscribe();
+  }, [user, isAdmin]);
+
+  const handleApprovePermission = async (permId) => {
+    try {
+      const docRef = doc(db, 'clinical_permissions', permId);
+      await updateDoc(docRef, {
+        status: 'authorized',
+        authorizedAt: new Date().toISOString()
+      });
+    } catch (err) {
+      console.error("Error al autorizar permiso:", err);
+    }
+  };
+
+  const handleRejectPermission = async (permId) => {
+    try {
+      const docRef = doc(db, 'clinical_permissions', permId);
+      await updateDoc(docRef, {
+        status: 'revoked',
+        revokedAt: new Date().toISOString()
+      });
+    } catch (err) {
+      console.error("Error al rechazar permiso:", err);
+    }
+  };
 
   // Manejar entrada de EPID con auto-relleno e inteligente
   const handleSearchInputChange = (e) => {
@@ -158,6 +242,16 @@ export default function PetDashboard({ onNavigateToOwnerConfig, onNavigateToPetD
         </div>
       </div>
 
+      {/* Barra de Navegación del Dashboard */}
+      <div className={styles.navTabs}>
+        <button className={`${styles.navTab} ${styles.activeTab}`}>
+          Mis Mascotas
+        </button>
+        <button onClick={onNavigateToVetDirectory} className={styles.navTab}>
+          Buscar Veterinarias
+        </button>
+      </div>
+
       {/* Panel Administrador Maestro */}
       {isAdmin && (
         <div className={styles.adminPanel}>
@@ -192,9 +286,129 @@ export default function PetDashboard({ onNavigateToOwnerConfig, onNavigateToPetD
               </button>
             </div>
           )}
+          
+          <div className={styles.divider} />
+          
+          {/* Sección de Gestión de Clínicas (Covacentral Master Panel) */}
+          <div className={styles.adminSection}>
+            <h2 className={styles.sectionTitle}>Gestión de Clínicas enlapet</h2>
+            {clinicsLoading ? (
+              <div className={styles.loadingSpinner}>Cargando veterinarias...</div>
+            ) : clinicsList.length === 0 ? (
+              <div className={styles.emptyState}>No hay veterinarias registradas en la plataforma.</div>
+            ) : (
+              <div className={styles.adminClinicsList}>
+                {clinicsList.map((clinic) => {
+                  const status = clinic.status || 'pending';
+                  const plan = clinic.plan || 'free';
+                  return (
+                    <div key={clinic.id} className={styles.adminClinicCard}>
+                      <div className={styles.adminClinicInfo}>
+                        {clinic.logoUrl ? (
+                          <img src={clinic.logoUrl} alt={clinic.name} className={styles.adminClinicLogo} />
+                        ) : (
+                          <div className={styles.adminClinicLogoPlaceholder}>
+                            <PawPrint size={24} />
+                          </div>
+                        )}
+                        <div className={styles.adminClinicText}>
+                          <h3>{clinic.name || 'Veterinaria Sin Nombre'}</h3>
+                          <p>{clinic.city || 'Sin ciudad'} - {clinic.neighborhood || 'Sin barrio'}</p>
+                          <p className={styles.adminClinicMeta}>Contacto: {clinic.phone || 'Sin teléfono'} | {clinic.email}</p>
+                          <div className={styles.adminClinicBadges}>
+                            <span className={`${styles.statusBadge} ${styles[status]}`}>
+                              {status === 'verified' ? '✓ Verificado' : status === 'suspended' ? '✕ Suspendido' : '⚡ Pendiente'}
+                            </span>
+                            <span className={`${styles.planBadge} ${styles[plan]}`}>
+                              {plan === 'premium' ? '👑 Premium' : 'Gratuito'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className={styles.adminClinicActions}>
+                        <div className={styles.actionGroup}>
+                          <span className={styles.actionGroupLabel}>Verificación:</span>
+                          <button 
+                            onClick={() => handleUpdateClinicStatus(clinic.id, 'verified')}
+                            className={`${styles.adminActionBtn} ${status === 'verified' ? styles.activeVerify : ''}`}
+                            title="Aprobar Verificación"
+                          >
+                            <UserCheck size={14} />
+                            <span>Aprobar</span>
+                          </button>
+                          <button 
+                            onClick={() => handleUpdateClinicStatus(clinic.id, 'suspended')}
+                            className={`${styles.adminActionBtn} ${status === 'suspended' ? styles.activeSuspend : ''}`}
+                            title="Suspender Cuenta"
+                          >
+                            <UserX size={14} />
+                            <span>Suspender</span>
+                          </button>
+                          {status !== 'pending' && (
+                            <button 
+                              onClick={() => handleUpdateClinicStatus(clinic.id, 'pending')}
+                              className={styles.adminActionBtn}
+                              title="Poner en Pendiente"
+                            >
+                              <span>Marcar Pendiente</span>
+                            </button>
+                          )}
+                        </div>
+                        <div className={styles.actionGroup}>
+                          <span className={styles.actionGroupLabel}>Suscripción:</span>
+                          <button 
+                            onClick={() => handleUpdateClinicPlan(clinic.id, 'premium')}
+                            className={`${styles.adminActionBtn} ${plan === 'premium' ? styles.activePremium : ''}`}
+                            title="Plan Premium (PRO)"
+                          >
+                            <Crown size={14} />
+                            <span>Premium</span>
+                          </button>
+                          <button 
+                            onClick={() => handleUpdateClinicPlan(clinic.id, 'free')}
+                            className={`${styles.adminActionBtn} ${plan === 'free' ? styles.activeFree : ''}`}
+                            title="Plan Gratuito"
+                          >
+                            <span>Gratuito</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+          
           <div className={styles.divider} />
         </div>
       )}
+
+      {/* Solicitudes de Permiso Clínico Activas */}
+      {!isAdmin && pendingPermissions.map((perm) => {
+        const petName = pets.find(p => p.id === perm.petId)?.name || 'Mascota';
+        return (
+          <div key={perm.id} className={styles.permissionAlert}>
+            <div className={styles.permissionAlertIconContainer}>
+              <ShieldAlert className={styles.permissionAlertIcon} size={24} />
+            </div>
+            <div className={styles.permissionAlertText}>
+              <h3>Solicitud de Acceso Clínico</h3>
+              <p>
+                La veterinaria <strong>{perm.clinicName}</strong> está solicitando autorización para agregar vacunas, consultas y notas al historial médico de <strong>{petName}</strong>.
+              </p>
+            </div>
+            <div className={styles.permissionAlertActions}>
+              <button onClick={() => handleRejectPermission(perm.id)} className={styles.permissionRejectBtn}>
+                Rechazar
+              </button>
+              <button onClick={() => handleApprovePermission(perm.id)} className={styles.permissionApproveBtn}>
+                Autorizar Acceso
+              </button>
+            </div>
+          </div>
+        );
+      })}
 
       {/* Alerta de Configuración Incompleta (Para usuarios estándar) */}
       {!isProfileComplete && !isAdmin && (

@@ -1,0 +1,189 @@
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: radial-gradient(135deg, #0f172a 0%, #020617 100%);
+  font-family: 'Outfit', sans-serif;
+  position: relative;
+  overflow: hidden;
+  padding: 20px;
+}
+
+.circle1 {
+  position: absolute;
+  top: -10%;
+  left: -10%;
+  width: 40vw;
+  height: 40vw;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%);
+  border-radius: 50%;
+  filter: blur(40px);
+}
+
+.circle2 {
+  position: absolute;
+  bottom: -10%;
+  right: -10%;
+  width: 40vw;
+  height: 40vw;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 70%);
+  border-radius: 50%;
+  filter: blur(40px);
+}
+
+.card {
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  padding: 40px;
+  width: 100%;
+  max-width: 580px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.logoBg {
+  display: inline-flex;
+  padding: 12px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border-radius: 16px;
+  box-shadow: 0 8px 16px rgba(16, 185, 129, 0.2);
+  margin-bottom: 16px;
+}
+
+.logoIcon {
+  color: #fff;
+}
+
+.title {
+  color: #f8fafc;
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+}
+
+.subtitle {
+  color: #94a3b8;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.optionCard {
+  background: rgba(30, 41, 59, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  outline: none;
+}
+
+.optionCard:hover {
+  background: rgba(30, 41, 59, 0.7);
+  border-color: rgba(255, 255, 255, 0.12);
+  transform: translateY(-2px);
+}
+
+.selectedCard {
+  background: rgba(16, 185, 129, 0.08) !important;
+  border-color: rgba(16, 185, 129, 0.4) !important;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.1);
+}
+
+.iconBgOwner, .iconBgClinic {
+  display: flex;
+  padding: 10px;
+  border-radius: 12px;
+  color: #fff;
+}
+
+.iconBgOwner {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.iconBgClinic {
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+}
+
+.cardIcon {
+  color: #fff;
+}
+
+.optionContent {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.optionContent h3 {
+  color: #f1f5f9;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.optionContent p {
+  color: #94a3b8;
+  font-size: 0.88rem;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.confirmButton {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  padding: 14px 28px;
+  font-size: 1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+}
+
+.confirmButton:hover:not(:disabled) {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3);
+}
+
+.confirmButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: 24px;
+  }
+  
+  .title {
+    font-size: 1.5rem;
+  }
+}
