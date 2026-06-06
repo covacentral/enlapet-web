@@ -57,6 +57,15 @@ export default function PetDashboard({
     return () => unsubscribe();
   }, [isAdmin]);
 
+  const [expandedDocs, setExpandedDocs] = useState({});
+
+  const toggleDocs = (clinicId) => {
+    setExpandedDocs(prev => ({
+      ...prev,
+      [clinicId]: !prev[clinicId]
+    }));
+  };
+
   const handleUpdateClinicStatus = async (clinicId, newStatus) => {
     try {
       const docRef = doc(db, 'clinics', clinicId);
@@ -64,6 +73,22 @@ export default function PetDashboard({
         status: newStatus,
         updatedAt: new Date().toISOString()
       });
+
+      // Si el estado es 'verified', actualizar el rol del usuario a 'clinic'
+      if (newStatus === 'verified') {
+        const userRef = doc(db, 'users', clinicId);
+        await updateDoc(userRef, {
+          role: 'clinic',
+          updatedAt: new Date().toISOString()
+        });
+      } else if (newStatus === 'suspended') {
+        // Si es suspendido, revertir el rol del usuario a 'owner'
+        const userRef = doc(db, 'users', clinicId);
+        await updateDoc(userRef, {
+          role: 'owner',
+          updatedAt: new Date().toISOString()
+        });
+      }
     } catch (err) {
       console.error("Error al actualizar estado de veterinaria:", err);
       alert("Error al actualizar estado.");
@@ -302,77 +327,111 @@ export default function PetDashboard({
                   const status = clinic.status || 'pending';
                   const plan = clinic.plan || 'free';
                   return (
-                    <div key={clinic.id} className={styles.adminClinicCard}>
-                      <div className={styles.adminClinicInfo}>
-                        {clinic.logoUrl ? (
-                          <img src={clinic.logoUrl} alt={clinic.name} className={styles.adminClinicLogo} />
-                        ) : (
-                          <div className={styles.adminClinicLogoPlaceholder}>
-                            <PawPrint size={24} />
-                          </div>
-                        )}
-                        <div className={styles.adminClinicText}>
-                          <h3>{clinic.name || 'Veterinaria Sin Nombre'}</h3>
-                          <p>{clinic.city || 'Sin ciudad'} - {clinic.neighborhood || 'Sin barrio'}</p>
-                          <p className={styles.adminClinicMeta}>Contacto: {clinic.phone || 'Sin teléfono'} | {clinic.email}</p>
-                          <div className={styles.adminClinicBadges}>
-                            <span className={`${styles.statusBadge} ${styles[status]}`}>
-                              {status === 'verified' ? '✓ Verificado' : status === 'suspended' ? '✕ Suspendido' : '⚡ Pendiente'}
-                            </span>
-                            <span className={`${styles.planBadge} ${styles[plan]}`}>
-                              {plan === 'premium' ? '👑 Premium' : 'Gratuito'}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className={styles.adminClinicActions}>
-                        <div className={styles.actionGroup}>
-                          <span className={styles.actionGroupLabel}>Verificación:</span>
-                          <button 
-                            onClick={() => handleUpdateClinicStatus(clinic.id, 'verified')}
-                            className={`${styles.adminActionBtn} ${status === 'verified' ? styles.activeVerify : ''}`}
-                            title="Aprobar Verificación"
-                          >
-                            <UserCheck size={14} />
-                            <span>Aprobar</span>
-                          </button>
-                          <button 
-                            onClick={() => handleUpdateClinicStatus(clinic.id, 'suspended')}
-                            className={`${styles.adminActionBtn} ${status === 'suspended' ? styles.activeSuspend : ''}`}
-                            title="Suspender Cuenta"
-                          >
-                            <UserX size={14} />
-                            <span>Suspender</span>
-                          </button>
-                          {status !== 'pending' && (
-                            <button 
-                              onClick={() => handleUpdateClinicStatus(clinic.id, 'pending')}
-                              className={styles.adminActionBtn}
-                              title="Poner en Pendiente"
-                            >
-                              <span>Marcar Pendiente</span>
-                            </button>
+                    <div key={clinic.id} className={styles.adminClinicCard} style={{ display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'stretch' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', flexWrap: 'wrap', gap: '16px' }}>
+                        <div className={styles.adminClinicInfo}>
+                          {clinic.logoUrl ? (
+                            <img src={clinic.logoUrl} alt={clinic.name} className={styles.adminClinicLogo} />
+                          ) : (
+                            <div className={styles.adminClinicLogoPlaceholder}>
+                              <PawPrint size={24} />
+                            </div>
                           )}
+                          <div className={styles.adminClinicText}>
+                            <h3>{clinic.name || 'Veterinaria Sin Nombre'}</h3>
+                            <p>{clinic.city || 'Sin ciudad'} - {clinic.neighborhood || 'Sin barrio'}</p>
+                            <p className={styles.adminClinicMeta}>Contacto: {clinic.phone || 'Sin teléfono'} | {clinic.email}</p>
+                            <div className={styles.adminClinicBadges}>
+                              <span className={`${styles.statusBadge} ${styles[status]}`}>
+                                {status === 'verified' ? '✓ Verificado' : status === 'suspended' ? '✕ Suspendido' : '⚡ Pendiente'}
+                              </span>
+                              <span className={`${styles.planBadge} ${styles[plan]}`}>
+                                {plan === 'premium' ? '👑 Premium' : 'Gratuito'}
+                              </span>
+                            </div>
+                          </div>
                         </div>
-                        <div className={styles.actionGroup}>
-                          <span className={styles.actionGroupLabel}>Suscripción:</span>
-                          <button 
-                            onClick={() => handleUpdateClinicPlan(clinic.id, 'premium')}
-                            className={`${styles.adminActionBtn} ${plan === 'premium' ? styles.activePremium : ''}`}
-                            title="Plan Premium (PRO)"
-                          >
-                            <Crown size={14} />
-                            <span>Premium</span>
-                          </button>
-                          <button 
-                            onClick={() => handleUpdateClinicPlan(clinic.id, 'free')}
-                            className={`${styles.adminActionBtn} ${plan === 'free' ? styles.activeFree : ''}`}
-                            title="Plan Gratuito"
-                          >
-                            <span>Gratuito</span>
-                          </button>
+                        <div className={styles.adminClinicActions}>
+                          <div className={styles.actionGroup}>
+                            <button 
+                              onClick={() => toggleDocs(clinic.id)}
+                              className={styles.adminActionBtn}
+                              style={{ marginRight: '8px', background: expandedDocs[clinic.id] ? '#eee' : 'white', borderColor: expandedDocs[clinic.id] ? '#10b981' : '#ccc' }}
+                            >
+                              <span>{expandedDocs[clinic.id] ? 'Ocultar Documentos' : 'Inspeccionar Docs'}</span>
+                            </button>
+                            <span className={styles.actionGroupLabel}>Verificación:</span>
+                            <button 
+                              onClick={() => handleUpdateClinicStatus(clinic.id, 'verified')}
+                              className={`${styles.adminActionBtn} ${status === 'verified' ? styles.activeVerify : ''}`}
+                              title="Aprobar Verificación"
+                            >
+                              <UserCheck size={14} />
+                              <span>Aprobar</span>
+                            </button>
+                            <button 
+                              onClick={() => handleUpdateClinicStatus(clinic.id, 'suspended')}
+                              className={`${styles.adminActionBtn} ${status === 'suspended' ? styles.activeSuspend : ''}`}
+                              title="Suspender Cuenta"
+                            >
+                              <UserX size={14} />
+                              <span>Suspender</span>
+                            </button>
+                            {status !== 'pending' && (
+                              <button 
+                                onClick={() => handleUpdateClinicStatus(clinic.id, 'pending')}
+                                className={styles.adminActionBtn}
+                                title="Poner en Pendiente"
+                              >
+                                <span>Marcar Pendiente</span>
+                              </button>
+                            )}
+                          </div>
+                          <div className={styles.actionGroup}>
+                            <span className={styles.actionGroupLabel}>Suscripción:</span>
+                            <button 
+                              onClick={() => handleUpdateClinicPlan(clinic.id, 'premium')}
+                              className={`${styles.adminActionBtn} ${plan === 'premium' ? styles.activePremium : ''}`}
+                              title="Plan Premium (PRO)"
+                            >
+                              <Crown size={14} />
+                              <span>Premium</span>
+                            </button>
+                            <button 
+                              onClick={() => handleUpdateClinicPlan(clinic.id, 'free')}
+                              className={`${styles.adminActionBtn} ${plan === 'free' ? styles.activeFree : ''}`}
+                              title="Plan Gratuito"
+                            >
+                              <span>Gratuito</span>
+                            </button>
+                          </div>
                         </div>
                       </div>
+
+                      {expandedDocs[clinic.id] && (
+                        <div className={styles.adminClinicDocsInspection} style={{ display: 'flex', gap: '20px', marginTop: '12px', borderTop: '1px solid #eee', paddingTop: '16px', flexWrap: 'wrap' }}>
+                          <div style={{ flex: 1, minWidth: '240px' }}>
+                            <p style={{ margin: '0 0 8px 0', fontSize: '0.85rem', fontWeight: 700, color: 'hsl(220, 20%, 40%)' }}>
+                              NIT/RUT: <strong style={{ color: '#333' }}>{clinic.nit || 'No Registrado'}</strong>
+                            </p>
+                            {clinic.rutUrl ? (
+                              <img src={clinic.rutUrl} alt="RUT de la clínica" style={{ width: '100%', maxHeight: '350px', objectFit: 'contain', border: '1px solid #e2e8f0', borderRadius: '12px', background: '#f8fafc', padding: '8px' }} />
+                            ) : (
+                              <p style={{ fontStyle: 'italic', fontSize: '0.85rem', color: '#666' }}>No se ha cargado documento RUT</p>
+                            )}
+                          </div>
+                          <div style={{ flex: 1, minWidth: '240px' }}>
+                            <p style={{ margin: '0 0 8px 0', fontSize: '0.85rem', fontWeight: 700, color: 'hsl(220, 20%, 40%)' }}>
+                              Tarjeta Profesional / Registro: <strong style={{ color: '#333' }}>{clinic.professionalCard || 'No Registrado'}</strong>
+                            </p>
+                            {clinic.licenseUrl ? (
+                              <img src={clinic.licenseUrl} alt="Tarjeta Profesional" style={{ width: '100%', maxHeight: '350px', objectFit: 'contain', border: '1px solid #e2e8f0', borderRadius: '12px', background: '#f8fafc', padding: '8px' }} />
+                            ) : (
+                              <p style={{ fontStyle: 'italic', fontSize: '0.85rem', color: '#666' }}>No se ha cargado documento de Tarjeta Profesional</p>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   );
                 })}

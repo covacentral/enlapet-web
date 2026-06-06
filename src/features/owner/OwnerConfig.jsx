@@ -1,14 +1,150 @@
 import React, { useState, useEffect } from 'react';
-import { doc, updateDoc, collection, query, where, getDocs, writeBatch } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, writeBatch } from 'firebase/firestore';
 import { db } from '../../core/firebase/firebase';
 import { useAuth } from '../auth/AuthContext';
-import { ChevronLeft, Info } from 'lucide-react';
+import { ChevronLeft, Info, Upload, ShieldAlert, CheckCircle } from 'lucide-react';
 import { LATAM_COUNTRIES, STATES_BY_COUNTRY, CITIES_BY_STATE } from '../../shared/utils/locationData';
 import styles from './OwnerConfig.module.css';
 
 export default function OwnerConfig({ onSaveComplete, onBack }) {
   const { user, ownerData, refreshOwnerData, logout } = useAuth();
   const [loading, setLoading] = useState(false);
+
+  // Estado de solicitud de verificación de veterinaria
+  const [vetRequest, setVetRequest] = useState(null);
+  const [vetRequestLoading, setVetRequestLoading] = useState(true);
+  const [submittingVet, setSubmittingVet] = useState(false);
+
+  // Campos para el formulario de solicitud vet
+  const [vetForm, setVetForm] = useState({
+    clinicName: '',
+    phone: '',
+    city: '',
+    neighborhood: '',
+    address: '',
+    nit: '',
+    rutUrl: '',
+    professionalCard: '',
+    licenseUrl: ''
+  });
+
+  useEffect(() => {
+    if (!user) return;
+    const fetchVetRequest = async () => {
+      try {
+        const docRef = doc(db, 'clinics', user.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setVetRequest(data);
+          setVetForm({
+            clinicName: data.name || '',
+            phone: data.phone || '',
+            city: data.city || '',
+            neighborhood: data.neighborhood || '',
+            address: data.address || '',
+            nit: data.nit || '',
+            rutUrl: data.rutUrl || '',
+            professionalCard: data.professionalCard || '',
+            licenseUrl: data.licenseUrl || ''
+          });
+        }
+      } catch (err) {
+        console.error("Error al obtener solicitud de veterinaria:", err);
+      } finally {
+        setVetRequestLoading(false);
+      }
+    };
+    fetchVetRequest();
+  }, [user]);
+
+  const handleFileChange = (e, field) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 500;
+        const MAX_HEIGHT = 500;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8);
+        setVetForm(prev => ({ ...prev, [field]: compressedBase64 }));
+      };
+      img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleVetSubmit = async (e) => {
+    e.preventDefault();
+    if (!vetForm.clinicName.trim() || !vetForm.phone.trim() || !vetForm.city.trim() || !vetForm.address.trim() || !vetForm.nit.trim() || !vetForm.professionalCard.trim()) {
+      alert("Por favor completa todos los campos requeridos.");
+      return;
+    }
+    if (!vetForm.rutUrl) {
+      alert("Por favor sube una imagen legible de tu documento RUT.");
+      return;
+    }
+    if (!vetForm.licenseUrl) {
+      alert("Por favor sube una imagen legible de tu Tarjeta Profesional.");
+      return;
+    }
+
+    setSubmittingVet(true);
+    try {
+      const docRef = doc(db, 'clinics', user.uid);
+      const requestData = {
+        name: vetForm.clinicName,
+        phone: vetForm.phone,
+        city: vetForm.city,
+        neighborhood: vetForm.neighborhood,
+        address: vetForm.address,
+        nit: vetForm.nit,
+        rutUrl: vetForm.rutUrl,
+        professionalCard: vetForm.professionalCard,
+        licenseUrl: vetForm.licenseUrl,
+        status: 'pending',
+        plan: 'free',
+        email: user.email,
+        updatedAt: new Date().toISOString()
+      };
+      if (!vetRequest) {
+        requestData.createdAt = new Date().toISOString();
+      }
+      await setDoc(docRef, requestData, { merge: true });
+      
+      const updatedSnap = await getDoc(docRef);
+      setVetRequest(updatedSnap.data());
+      alert("¡Solicitud enviada con éxito! El equipo de covacentral revisará tus documentos.");
+    } catch (err) {
+      console.error("Error al enviar solicitud de veterinaria:", err);
+      alert("Error al enviar solicitud: " + err.message);
+    } finally {
+      setSubmittingVet(false);
+    }
+  };
 
   // Estados del Formulario
   const [country, setCountry] = useState('Colombia');
@@ -523,6 +659,164 @@ export default function OwnerConfig({ onSaveComplete, onBack }) {
             Enviar por Correo
           </button>
         </form>
+      )}
+
+      {/* Sección de Registro / Verificación de Veterinaria (Para dueños de mascotas) */}
+      {!vetRequestLoading && (
+        <div className={styles.secondaryCard} style={{ marginTop: '24px' }}>
+          <h3>Solicitud de Cuenta Veterinaria</h3>
+          <p className={styles.secondaryCardDesc}>
+            Si eres médico veterinario o administras un consultorio clínico, solicita la verificación de tu cuenta para habilitar el portal clínico (agenda en vivo, EMR/EHR, control de caja e inventario).
+          </p>
+
+          {vetRequest ? (
+            <div className={styles.vetStatusBox} style={{ margin: '16px 0', padding: '16px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)' }}>
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                {vetRequest.status === 'verified' ? (
+                  <CheckCircle style={{ color: '#10b981' }} size={24} />
+                ) : vetRequest.status === 'suspended' ? (
+                  <ShieldAlert style={{ color: '#ef4444' }} size={24} />
+                ) : (
+                  <ShieldAlert style={{ color: '#f59e0b' }} size={24} />
+                )}
+                <div>
+                  <h4 style={{ margin: 0, fontWeight: 700, fontSize: '0.95rem' }}>
+                    Estado: {vetRequest.status === 'verified' ? 'Aprobado' : vetRequest.status === 'suspended' ? 'Suspendido' : 'Pendiente de Aprobación'}
+                  </h4>
+                  <p style={{ margin: '4px 0 0 0', fontSize: '0.85rem', color: '#888', lineHeight: 1.4 }}>
+                    {vetRequest.status === 'verified' 
+                      ? 'Tu cuenta ha sido aprobada. Por favor cierra sesión y vuelve a iniciarla para cargar las herramientas clínicas.' 
+                      : vetRequest.status === 'suspended'
+                      ? 'Tu acceso ha sido suspendido temporalmente por covacentral.'
+                      : 'Tu documentación está siendo validada por el administrador maestro. Te notificaremos pronto.'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          {(!vetRequest || vetRequest.status === 'declined') && (
+            <form onSubmit={handleVetSubmit} className={styles.vetForm} style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Nombre del Consultorio / Clínica</label>
+                <input 
+                  type="text" 
+                  value={vetForm.clinicName}
+                  onChange={(e) => setVetForm({ ...vetForm, clinicName: e.target.value })}
+                  placeholder="Ej. Clínica Veterinaria San Francisco"
+                  required
+                  className={styles.input}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <div className={styles.formGroup} style={{ flex: 1 }}>
+                  <label className={styles.label}>Ciudad</label>
+                  <input 
+                    type="text" 
+                    value={vetForm.city}
+                    onChange={(e) => setVetForm({ ...vetForm, city: e.target.value })}
+                    placeholder="Ej. Cali"
+                    required
+                    className={styles.input}
+                  />
+                </div>
+                <div className={styles.formGroup} style={{ flex: 1 }}>
+                  <label className={styles.label}>Barrio</label>
+                  <input 
+                    type="text" 
+                    value={vetForm.neighborhood}
+                    onChange={(e) => setVetForm({ ...vetForm, neighborhood: e.target.value })}
+                    placeholder="Ej. Granada"
+                    className={styles.input}
+                  />
+                </div>
+              </div>
+
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Dirección Exacta</label>
+                <input 
+                  type="text" 
+                  value={vetForm.address}
+                  onChange={(e) => setVetForm({ ...vetForm, address: e.target.value })}
+                  placeholder="Ej. Av 9 N # 12-34"
+                  required
+                  className={styles.input}
+                />
+              </div>
+
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Teléfono de Atención</label>
+                <input 
+                  type="tel" 
+                  value={vetForm.phone}
+                  onChange={(e) => setVetForm({ ...vetForm, phone: e.target.value })}
+                  placeholder="Ej. 3157654321"
+                  required
+                  className={styles.input}
+                />
+              </div>
+
+              <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.08)', margin: '8px 0' }} />
+
+              <div className={styles.formGroup}>
+                <label className={styles.label}>NIT / RUT de la Clínica (o Cédula si es independiente)</label>
+                <input 
+                  type="text" 
+                  value={vetForm.nit}
+                  onChange={(e) => setVetForm({ ...vetForm, nit: e.target.value })}
+                  placeholder="Ej. 900.123.456-7"
+                  required
+                  className={styles.input}
+                />
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <label className={styles.btnSupport} style={{ margin: 0, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                  <Upload size={16} />
+                  <span>Subir Documento RUT (Foto)</span>
+                  <input 
+                    type="file" 
+                    accept="image/*"
+                    onChange={(e) => handleFileChange(e, 'rutUrl')}
+                    style={{ display: 'none' }}
+                  />
+                </label>
+                {vetForm.rutUrl && <span style={{ color: '#10b981', fontSize: '0.85rem', fontWeight: 600 }}>✓ RUT Cargado</span>}
+              </div>
+
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Número de Tarjeta Profesional / Registro Médico</label>
+                <input 
+                  type="text" 
+                  value={vetForm.professionalCard}
+                  onChange={(e) => setVetForm({ ...vetForm, professionalCard: e.target.value })}
+                  placeholder="Ej. MP-12345"
+                  required
+                  className={styles.input}
+                />
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <label className={styles.btnSupport} style={{ margin: 0, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                  <Upload size={16} />
+                  <span>Subir Tarjeta Profesional (Foto)</span>
+                  <input 
+                    type="file" 
+                    accept="image/*"
+                    onChange={(e) => handleFileChange(e, 'licenseUrl')}
+                    style={{ display: 'none' }}
+                  />
+                </label>
+                {vetForm.licenseUrl && <span style={{ color: '#10b981', fontSize: '0.85rem', fontWeight: 600 }}>✓ Tarjeta Profesional Cargada</span>}
+              </div>
+
+              <button type="submit" disabled={submittingVet} className={styles.btnSave} style={{ marginTop: '12px' }}>
+                {submittingVet ? 'Enviando...' : 'Enviar Solicitud de Verificación'}
+              </button>
+            </form>
+          )}
+        </div>
       )}
 
       <button 

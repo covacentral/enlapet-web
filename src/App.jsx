@@ -82,11 +82,6 @@ function AppContent() {
     return <AuthPage />;
   }
 
-  // Si está autenticado pero no tiene rol asignado (nuevo registro)
-  if (user && !role) {
-    return <RoleSelector />;
-  }
-
   // Si es una clínica o staff clínico, renderizar el panel de la clínica
   if (role === 'clinic' || role === 'staff') {
     return <ClinicDashboard />;

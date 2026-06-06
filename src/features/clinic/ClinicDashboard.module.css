@@ -1,16 +1,16 @@
 .container {
   display: flex;
   min-height: 100vh;
-  background-color: #0b0f19;
+  background-color: hsl(220, 30%, 98%);
   font-family: 'Outfit', sans-serif;
-  color: #e2e8f0;
+  color: hsl(220, 25%, 35%);
 }
 
 /* Sidebar Desktop */
 .sidebar {
   width: 280px;
-  background-color: #111827;
-  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  background-color: #ffffff;
+  border-right: 1px solid hsl(220, 20%, 90%);
   display: flex;
   flex-direction: column;
   position: sticky;
@@ -21,13 +21,13 @@
 
 .logoContainer {
   padding: 24px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid hsl(220, 20%, 90%);
   display: flex;
   align-items: center;
 }
 
 .appName {
-  color: #fff;
+  color: hsl(220, 40%, 15%);
   font-size: 1.4rem;
   font-weight: 700;
   letter-spacing: -0.5px;
@@ -38,7 +38,7 @@
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
-  background: rgba(16, 185, 129, 0.1);
+  background: rgba(16, 185, 129, 0.10);
   padding: 2px 6px;
   border-radius: 6px;
   margin-left: 6px;
@@ -57,7 +57,7 @@
   background: transparent;
   border: none;
   border-radius: 12px;
-  color: #9ca3af;
+  color: hsl(220, 20%, 45%);
   padding: 12px 16px;
   display: flex;
   align-items: center;
@@ -71,8 +71,8 @@
 }
 
 .navButton:hover {
-  background-color: rgba(255, 255, 255, 0.03);
-  color: #f3f4f6;
+  background-color: hsl(220, 20%, 96%);
+  color: hsl(220, 40%, 15%);
 }
 
 .activeNavButton {
@@ -93,7 +93,7 @@
 
 .sidebarFooter {
   padding: 20px 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid hsl(220, 20%, 90%);
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -108,7 +108,7 @@
 .userName {
   font-size: 0.95rem;
   font-weight: 600;
-  color: #f3f4f6;
+  color: hsl(220, 40%, 15%);
   margin: 0;
   white-space: nowrap;
   overflow: hidden;
@@ -117,15 +117,15 @@
 
 .userRole {
   font-size: 0.8rem;
-  color: #6b7280;
+  color: hsl(220, 15%, 60%);
   margin: 0;
 }
 
 .logoutButton {
-  background: rgba(239, 68, 68, 0.08);
-  border: 1px solid rgba(239, 68, 68, 0.15);
+  background: rgba(239, 68, 68, 0.06);
+  border: 1px solid rgba(239, 68, 68, 0.12);
   border-radius: 12px;
-  color: #f87171;
+  color: #ef4444;
   padding: 10px;
   display: flex;
   align-items: center;
@@ -139,7 +139,7 @@
 }
 
 .logoutButton:hover {
-  background: rgba(239, 68, 68, 0.15);
+  background: rgba(239, 68, 68, 0.12);
 }
 
 /* Mobile Layout */
@@ -160,37 +160,37 @@
 }
 
 .card {
-  background-color: #111827;
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  background-color: #ffffff;
+  border: 1px solid hsl(220, 20%, 90%);
   border-radius: 20px;
   padding: 32px;
   max-width: 900px;
   margin: 0 auto;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
 }
 
 .cardHeader {
   margin-bottom: 32px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid hsl(220, 20%, 92%);
   padding-bottom: 20px;
 }
 
 .cardHeader h2 {
   font-size: 1.6rem;
   font-weight: 700;
-  color: #fff;
+  color: hsl(220, 40%, 15%);
   margin: 0 0 6px 0;
 }
 
 .cardHeader p {
-  color: #9ca3af;
+  color: hsl(220, 10%, 55%);
   font-size: 0.95rem;
   margin: 0;
 }
 
 .successAlert {
-  background-color: rgba(16, 185, 129, 0.1);
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  background-color: rgba(16, 185, 129, 0.06);
+  border: 1px solid rgba(16, 185, 129, 0.15);
   color: #10b981;
   padding: 16px;
   border-radius: 12px;
@@ -209,10 +209,10 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
-  background-color: rgba(255, 255, 255, 0.01);
+  background-color: hsl(220, 30%, 99%);
   padding: 24px;
   border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.02);
+  border: 1px solid hsl(220, 20%, 94%);
 }
 
 .formSection h3 {
@@ -239,14 +239,14 @@
 .formGroup label {
   font-size: 0.88rem;
   font-weight: 500;
-  color: #9ca3af;
+  color: hsl(220, 15%, 50%);
 }
 
 .formGroup input, .formGroup select, .formGroup textarea {
-  background-color: #1f2937;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: #ffffff;
+  border: 1px solid hsl(220, 20%, 85%);
   border-radius: 10px;
-  color: #fff;
+  color: hsl(220, 40%, 15%);
   padding: 12px;
   font-family: inherit;
   font-size: 0.95rem;
@@ -257,13 +257,13 @@
 .formGroup input:focus, .formGroup select:focus, .formGroup textarea:focus {
   border-color: #10b981;
   box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.15);
-  background-color: #1a2333;
+  background-color: #ffffff;
 }
 
 .formActions {
   display: flex;
   justify-content: flex-end;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid hsl(220, 20%, 92%);
   padding-top: 24px;
 }
 
@@ -279,7 +279,7 @@
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
   transition: all 0.2s ease;
 }
 
@@ -291,37 +291,6 @@
 .saveButton:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-}
-
-/* Premium Module Overlay */
-.premiumOverlay {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 50vh;
-}
-
-.premiumBox {
-  text-align: center;
-  background-color: #111827;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 20px;
-  padding: 40px;
-  max-width: 480px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-}
-
-.premiumBox h3 {
-  font-size: 1.3rem;
-  color: #fff;
-  margin: 0 0 12px 0;
-}
-
-.premiumBox p {
-  color: #9ca3af;
-  font-size: 0.95rem;
-  line-height: 1.5;
-  margin: 0;
 }
 
 /* Responsive Rules */
@@ -339,8 +308,8 @@
     align-items: center;
     justify-content: space-between;
     padding: 16px 20px;
-    background-color: #111827;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    background-color: #ffffff;
+    border-bottom: 1px solid hsl(220, 20%, 90%);
     position: sticky;
     top: 0;
     z-index: 200;
@@ -349,7 +318,7 @@
   .menuToggle {
     background: transparent;
     border: none;
-    color: #fff;
+    color: hsl(220, 40%, 15%);
     cursor: pointer;
   }
 
@@ -360,7 +329,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(11, 15, 25, 0.95);
+    background-color: rgba(255, 255, 255, 0.98);
     backdrop-filter: blur(10px);
     z-index: 150;
   }
@@ -373,10 +342,10 @@
   }
 
   .mobileDrawerButton {
-    background: #111827;
-    border: 1px solid rgba(255, 255, 255, 0.03);
+    background: #ffffff;
+    border: 1px solid hsl(220, 20%, 90%);
     border-radius: 12px;
-    color: #9ca3af;
+    color: hsl(220, 20%, 45%);
     padding: 14px 20px;
     display: flex;
     align-items: center;
@@ -397,13 +366,13 @@
   .mobileLogout {
     background: rgba(239, 68, 68, 0.05) !important;
     border-color: rgba(239, 68, 68, 0.1) !important;
-    color: #f87171 !important;
-    margin-top: 24px;
+    color: #ef4444 !important;
   }
 
   .mainContent {
     padding: 20px;
     height: auto;
+    overflow-y: visible;
   }
 
   .card {
@@ -415,29 +384,24 @@
   }
 }
 
-/* Logo Upload Section */
+/* Imagen de Logotipo */
 .logoUploadSection {
   display: flex;
   align-items: center;
   gap: 20px;
-  background-color: rgba(255, 255, 255, 0.02);
-  padding: 16px;
-  border-radius: 12px;
-  border: 1px dashed rgba(255, 255, 255, 0.08);
   margin-bottom: 8px;
 }
 
 .logoPreviewContainer {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background-color: #1f2937;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  width: 90px;
+  height: 90px;
+  border-radius: 16px;
+  background-color: hsl(220, 20%, 95%);
+  border: 1px solid hsl(220, 20%, 88%);
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  flex-shrink: 0;
 }
 
 .logoPreviewImage {
@@ -447,7 +411,7 @@
 }
 
 .logoPlaceholderIcon {
-  color: #6b7280;
+  color: hsl(220, 10%, 65%);
 }
 
 .logoUploadControls {
@@ -457,10 +421,10 @@
 }
 
 .logoInputLabel {
-  background-color: #1f2937;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: #ffffff;
+  border: 1px solid hsl(220, 20%, 85%);
   border-radius: 10px;
-  color: #e2e8f0;
+  color: hsl(220, 25%, 35%);
   padding: 8px 16px;
   font-size: 0.88rem;
   font-weight: 500;
@@ -473,7 +437,7 @@
 }
 
 .logoInputLabel:hover {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: hsl(220, 20%, 96%);
   border-color: #10b981;
 }
 
@@ -483,7 +447,7 @@
 
 .logoUploadHelp {
   font-size: 0.75rem;
-  color: #6b7280;
+  color: hsl(220, 10%, 60%);
   margin: 0;
 }
 
@@ -498,14 +462,13 @@
 }
 
 .lockCard {
-  background: rgba(17, 24, 39, 0.7);
+  background: #ffffff;
   border: 1px solid rgba(239, 68, 68, 0.15);
-  backdrop-filter: blur(12px);
   border-radius: 20px;
   padding: 40px 30px;
   max-width: 500px;
   text-align: center;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
 }
 
 .lockCard h2 {
@@ -517,13 +480,13 @@
 }
 
 .lockCard p {
-  color: #9ca3af;
+  color: hsl(220, 15%, 45%);
   line-height: 1.6;
   font-size: 0.95rem;
 }
 
 .lockIconContainer {
-  background: rgba(239, 68, 68, 0.1);
+  background: rgba(239, 68, 68, 0.06);
   color: #ef4444;
   width: 80px;
   height: 80px;
@@ -537,34 +500,33 @@
 .lockHelp {
   margin-top: 16px;
   font-size: 0.88rem !important;
-  color: #6b7280 !important;
+  color: hsl(220, 10%, 60%) !important;
 }
 
 .lockBadge {
   display: inline-block;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: hsl(220, 20%, 95%);
+  border: 1px solid hsl(220, 20%, 90%);
   padding: 4px 12px;
   border-radius: 8px;
   font-size: 0.8rem;
   font-weight: 600;
-  color: #e2e8f0;
+  color: hsl(220, 25%, 35%);
   margin-top: 20px;
 }
 
 .lockCardPremium {
-  background: rgba(17, 24, 39, 0.7);
+  background: #ffffff;
   border: 1px solid rgba(99, 102, 241, 0.2);
-  backdrop-filter: blur(12px);
   border-radius: 20px;
   padding: 40px 30px;
   max-width: 500px;
   text-align: center;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
 }
 
 .lockCardPremium h2 {
-  color: #818cf8;
+  color: #6366f1;
   margin-top: 20px;
   margin-bottom: 12px;
   font-size: 1.6rem;
@@ -572,14 +534,14 @@
 }
 
 .lockCardPremium p {
-  color: #9ca3af;
+  color: hsl(220, 15%, 45%);
   line-height: 1.6;
   font-size: 0.95rem;
 }
 
 .lockIconContainerPremium {
-  background: rgba(99, 102, 241, 0.1);
-  color: #818cf8;
+  background: rgba(99, 102, 241, 0.06);
+  color: #6366f1;
   width: 80px;
   height: 80px;
   border-radius: 50%;
@@ -604,6 +566,7 @@
   margin-top: 24px;
   width: 100%;
   transition: opacity 0.2s ease;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
 }
 
 .lockBtnPremium:hover {
@@ -614,9 +577,9 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  background: rgba(245, 158, 11, 0.15);
-  border: 1px solid rgba(245, 158, 11, 0.3);
-  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.06);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  color: #d97706;
   padding: 14px 20px;
   border-radius: 12px;
   margin-bottom: 24px;
@@ -628,4 +591,3 @@
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
-

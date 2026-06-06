@@ -82,7 +82,7 @@ export function AuthProvider({ children }) {
         const initialProfile = {
           name: loggedUser.displayName || 'Usuario',
           email: loggedUser.email,
-          role: null, // Rol no definido inicialmente
+          role: 'owner', // Rol dueño por defecto
           contact: {
             country: '',
             city: '',
