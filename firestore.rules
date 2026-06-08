@@ -19,9 +19,13 @@ service cloud.firestore {
 
     // 1. Colección de Usuarios
     match /users/{userId} {
-      // Permitir leer si es admin, dueño, o si es una clínica para poder vincular personal por email
-      allow read: if isAdmin() || isOwner(userId) || (isAuthenticated() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'clinic');
-      allow write: if isAdmin() || isOwner(userId);
+      // Regla principal para dueños y administradores (segura, sin gets externos)
+      allow read, write: if isAdmin() || isOwner(userId);
+      
+      // Regla secundaria para permitir que las clínicas busquen asociados por correo
+      allow read: if isAuthenticated() && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'clinic';
     }
 
     // 2. Colección de Mascotas (Pets)
@@ -54,6 +58,7 @@ service cloud.firestore {
         allow read, write: if isAuthenticated() && (
           request.auth.uid == clinicId || 
           (exists(/databases/$(database)/documents/clinics/$(clinicId)/staff/$(request.auth.uid)) && 
+           exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.subRole == 'contabilidad')
         );
       }
@@ -63,6 +68,7 @@ service cloud.firestore {
         allow read, write: if isAuthenticated() && (
           request.auth.uid == clinicId || 
           (exists(/databases/$(database)/documents/clinics/$(clinicId)/staff/$(request.auth.uid)) && 
+           exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.subRole == 'contabilidad')
         );
       }
@@ -74,6 +80,7 @@ service cloud.firestore {
           request.auth.uid == clinicId || 
           resource.data.ownerId == request.auth.uid || 
           (exists(/databases/$(database)/documents/clinics/$(clinicId)/staff/$(request.auth.uid)) && 
+           exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.subRole in ['recepcion', 'veterinario'])
         );
       }
@@ -83,6 +90,7 @@ service cloud.firestore {
         allow create: if isAuthenticated() && (
           request.auth.uid == clinicId || 
           (exists(/databases/$(database)/documents/clinics/$(clinicId)/staff/$(request.auth.uid)) && 
+           exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.subRole == 'veterinario')
         );
         allow read: if isAuthenticated() && request.auth.uid == clinicId;
@@ -111,7 +119,11 @@ service cloud.firestore {
     // 7. Colección de Invitaciones
     match /invitations/{email} {
       allow read: if isAuthenticated() && request.auth.token.email.lower() == email;
-      allow write: if isAdmin() || (isAuthenticated() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'clinic');
+      allow write: if isAdmin() || (
+        isAuthenticated() && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'clinic'
+      );
     }
   }
 }
