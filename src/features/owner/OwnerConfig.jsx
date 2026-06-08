@@ -7,7 +7,7 @@ import { LATAM_COUNTRIES, STATES_BY_COUNTRY, CITIES_BY_STATE } from '../../share
 import styles from './OwnerConfig.module.css';
 
 export default function OwnerConfig({ onSaveComplete, onBack }) {
-  const { user, ownerData, refreshOwnerData, logout } = useAuth();
+  const { user, userData: ownerData, refreshProfileData: refreshOwnerData, logout } = useAuth();
   const [loading, setLoading] = useState(false);
 
   // Estado de solicitud de verificación de veterinaria

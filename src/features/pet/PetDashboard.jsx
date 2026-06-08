@@ -15,7 +15,7 @@ export default function PetDashboard({
   onNavigateToEditPet,
   onNavigateToVetDirectory 
 }) {
-  const { user, ownerData, logout, isProfileComplete } = useAuth();
+  const { user, userData: ownerData, logout, isProfileComplete } = useAuth();
   
   // Usar las mascotas y estado cargando pasados por el padre (App.jsx)
   const pets = petsList;

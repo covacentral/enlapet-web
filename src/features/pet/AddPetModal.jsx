@@ -9,7 +9,7 @@ import { ChevronLeft, Camera } from 'lucide-react';
 import styles from './AddPetModal.module.css';
 
 export default function AddPetModal({ onSaveComplete, onBack, petId }) {
-  const { user, ownerData } = useAuth();
+  const { user, userData: ownerData } = useAuth();
   const fileInputRef = useRef(null);
   
   const [loading, setLoading] = useState(false);
