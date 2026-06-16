@@ -1,12 +1,77 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    match /pets/{imageId} {
-      // Permitir la subida y eliminación a cualquier usuario autenticado para evitar fallos de evaluación de cadenas
-      allow write: if request.auth != null;
-      
-      // La lectura es pública para que cualquiera que escanee el collar NFC pueda ver la foto de la mascota
-      allow read: if true;
+
+    // ─────────────────────────────────────────────────────────
+    // FUNCIONES DE AYUDA
+    // ─────────────────────────────────────────────────────────
+
+    function isAuthenticated() {
+      return request.auth != null;
     }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        request.auth.token.email == 'covacentral@gmail.com';
+    }
+
+    function isOwner(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
+    }
+
+    // Tipos de imagen permitidos
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+
+    // Tamaño máximo de archivo (10 MB)
+    function isUnderLimit() {
+      return request.resource.size < 10 * 1024 * 1024;
+    }
+
+    // ─────────────────────────────────────────────────────────
+    // 1. FOTOS DE MASCOTAS  /pets/{imageId}
+    // Lectura pública (NFC tags). Escritura solo del dueño.
+    // ─────────────────────────────────────────────────────────
+    match /pets/{imageId} {
+      allow read: if true;
+      allow write: if isAuthenticated() && isImage() && isUnderLimit();
+    }
+
+    // ─────────────────────────────────────────────────────────
+    // 2. LOGOS DE CLÍNICAS  /clinics/{clinicId}/logo/{fileName}
+    // Solo la propia clínica puede subir/cambiar su logo.
+    // Lectura pública (directorio de clínicas).
+    // ─────────────────────────────────────────────────────────
+    match /clinics/{clinicId}/logo/{fileName} {
+      allow read: if true;
+      allow write: if isAdmin() ||
+        (isOwner(clinicId) && isImage() && isUnderLimit());
+    }
+
+    // ─────────────────────────────────────────────────────────
+    // 3. DOCUMENTOS DE VERIFICACIÓN DE CLÍNICAS
+    //    /verifications/clinics/{clinicId}/{fileName}
+    // Solo la propia clínica puede subir. Solo covacentral puede leer.
+    // ─────────────────────────────────────────────────────────
+    match /verifications/clinics/{clinicId}/{fileName} {
+      allow read: if isAdmin() || isOwner(clinicId);
+      allow write: if isAdmin() ||
+        (isOwner(clinicId) && isUnderLimit());
+      allow delete: if isAdmin();
+    }
+
+    // ─────────────────────────────────────────────────────────
+    // 4. DOCUMENTOS DE VERIFICACIÓN DE VETERINARIOS
+    //    /verifications/vets/{vetId}/{fileName}
+    // Solo el propio vet puede subir. Solo covacentral puede leer.
+    // ─────────────────────────────────────────────────────────
+    match /verifications/vets/{vetId}/{fileName} {
+      allow read: if isAdmin() || isOwner(vetId);
+      allow write: if isAdmin() ||
+        (isOwner(vetId) && isUnderLimit());
+      allow delete: if isAdmin();
+    }
+
   }
 }
