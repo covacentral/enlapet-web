@@ -1,32 +1,52 @@
 import React, { useState } from 'react';
 import { useAuth } from './AuthContext';
 import {
-  PawPrint,
-  ShieldAlert,
-  ChevronDown,
-  Building,
-  User,
-  ArrowLeft,
+  PawPrint, ShieldAlert, ChevronDown,
+  Building2, User, MapPin, ArrowLeft,
+  Check
 } from 'lucide-react';
 import styles from './ClinicAuthPage.module.css';
+
+// ── Opciones de clinicSubtype ──────────────────────────────
+const CLINIC_TYPES = [
+  {
+    value: 'ips',
+    icon: Building2,
+    title: 'Consultorio / IPS',
+    description: 'Establecimiento con múltiples veterinarios, recepción y contabilidad. Requiere NIT y Cámara de Comercio.',
+  },
+  {
+    value: 'solo_local',
+    icon: User,
+    title: 'Veterinario Independiente (con local)',
+    description: 'Médico autónomo con consultorio físico propio. Gestiona citas, historial y caja de forma individual.',
+  },
+  {
+    value: 'solo_mobile',
+    icon: MapPin,
+    title: 'Veterinario a Domicilio',
+    description: 'Médico que atiende sin local fijo. Solo se requiere tarjeta profesional COMVEZCOL y cédula.',
+  },
+];
 
 export default function ClinicAuthPage() {
   const { loginWithGoogle } = useAuth();
   const [error, setError] = useState('');
   const [signingIn, setSigningIn] = useState(false);
 
-  // Modos del portal clínico
-  const [portalMode, setPortalMode] = useState('clinic'); // 'clinic' | 'staff'
+  // 'clinic' | 'staff'
+  const [portalMode, setPortalMode] = useState('clinic');
   const [showDropdown, setShowDropdown] = useState(false);
 
-  // Tipo de clínica (solo aplica si portalMode === 'clinic')
-  const [clinicType, setClinicType] = useState('ips'); // 'ips' | 'solo'
+  // Solo aplica cuando portalMode === 'clinic'
+  const [clinicSubtype, setClinicSubtype] = useState('ips');
 
   const handleGoogleLogin = async () => {
     setError('');
     setSigningIn(true);
     try {
-      await loginWithGoogle(portalMode, clinicType);
+      // Pasamos clinicSubtype como segundo argumento — AuthContext ya lo maneja correctamente
+      await loginWithGoogle(portalMode, clinicSubtype);
     } catch (err) {
       console.error('Error en login de clínica:', err);
       setError(err.message || 'No se pudo iniciar sesión. Por favor intenta de nuevo.');
@@ -35,52 +55,54 @@ export default function ClinicAuthPage() {
     }
   };
 
+  const selectedType = CLINIC_TYPES.find(t => t.value === clinicSubtype);
+
   return (
     <div className={styles.authContainer}>
-      {/* Fondo decorativo */}
-      <div className={styles.bg1}></div>
-      <div className={styles.bg2}></div>
-      <div className={styles.bg3}></div>
+      {/* Fondos decorativos */}
+      <div className={styles.bg1} />
+      <div className={styles.bg2} />
+      <div className={styles.bg3} />
 
-      {/* Barra superior: volver al login normal */}
+      {/* Barra superior */}
       <div className={styles.topBar}>
         <a href="/" className={styles.backLink} aria-label="Volver al portal de mascotas">
           <ArrowLeft size={16} />
           <span>Portal Mascotas</span>
         </a>
 
-        {/* Selector de rol (dropdown) */}
+        {/* Dropdown: Admin o Asociados */}
         <div className={styles.dropdownWrapper}>
           <button
-            onClick={() => setShowDropdown((v) => !v)}
+            onClick={() => setShowDropdown(v => !v)}
             className={styles.dropdownTrigger}
             aria-expanded={showDropdown}
             aria-label="Cambiar modo de portal clínico"
           >
-            <span>
-              {portalMode === 'clinic' ? 'Admin / Clínicas' : 'Asociados / Equipo'}
-            </span>
+            <span>{portalMode === 'clinic' ? 'Admin / Clínicas' : 'Asociados / Equipo'}</span>
             <ChevronDown size={15} className={showDropdown ? styles.chevronOpen : ''} />
           </button>
 
           {showDropdown && (
             <div className={styles.dropdownMenu} role="menu">
-              <button
-                role="menuitem"
-                className={`${styles.dropdownItem} ${portalMode === 'clinic' ? styles.dropdownItemActive : ''}`}
-                onClick={() => { setPortalMode('clinic'); setShowDropdown(false); }}
-              >
-                <Building size={16} />
-                Admin / Clínicas
-              </button>
-              <button
-                role="menuitem"
-                className={`${styles.dropdownItem} ${portalMode === 'staff' ? styles.dropdownItemActive : ''}`}
-                onClick={() => { setPortalMode('staff'); setShowDropdown(false); }}
-              >
-                <User size={16} />
-                Asociados / Equipo
-              </button>
+              {[
+                { mode: 'clinic', label: 'Admin / Clínicas', icon: Building2 },
+                { mode: 'staff',  label: 'Asociados / Equipo', icon: User },
+              ].map(opt => {
+                const Icon = opt.icon;
+                return (
+                  <button
+                    key={opt.mode}
+                    role="menuitem"
+                    className={`${styles.dropdownItem} ${portalMode === opt.mode ? styles.dropdownItemActive : ''}`}
+                    onClick={() => { setPortalMode(opt.mode); setShowDropdown(false); }}
+                  >
+                    <Icon size={16} />
+                    {opt.label}
+                    {portalMode === opt.mode && <Check size={14} className={styles.dropdownCheck} />}
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
@@ -101,48 +123,43 @@ export default function ClinicAuthPage() {
 
         <p className={styles.subtitle}>
           {portalMode === 'clinic'
-            ? 'Panel administrativo para clínicas veterinarias y médicos independientes.'
+            ? 'Panel para clínicas veterinarias y médicos independientes.'
             : 'Portal exclusivo para médicos asociados, contabilidad y recepción autorizados.'}
         </p>
 
         {error && <p className={styles.errorMsg}>{error}</p>}
 
-        {/* Selector tipo de clínica */}
+        {/* Selector tipo de clínica — solo para mode 'clinic' */}
         {portalMode === 'clinic' && (
           <div className={styles.typePicker}>
             <p className={styles.typeLabel}>Selecciona tu modelo de atención:</p>
             <div className={styles.typeOptions}>
-              <label className={`${styles.typeOption} ${clinicType === 'ips' ? styles.typeOptionActive : ''}`}>
-                <input
-                  type="radio"
-                  name="clinicType"
-                  value="ips"
-                  checked={clinicType === 'ips'}
-                  onChange={() => setClinicType('ips')}
-                  className={styles.hiddenRadio}
-                />
-                <Building size={20} className={styles.typeIcon} />
-                <div className={styles.typeText}>
-                  <h4>Consultorio / IPS</h4>
-                  <p>Clínica con múltiples veterinarios, recepción y contabilidad.</p>
-                </div>
-              </label>
-
-              <label className={`${styles.typeOption} ${clinicType === 'solo' ? styles.typeOptionActive : ''}`}>
-                <input
-                  type="radio"
-                  name="clinicType"
-                  value="solo"
-                  checked={clinicType === 'solo'}
-                  onChange={() => setClinicType('solo')}
-                  className={styles.hiddenRadio}
-                />
-                <User size={20} className={styles.typeIcon} />
-                <div className={styles.typeText}>
-                  <h4>Veterinario Independiente</h4>
-                  <p>Médico autónomo que realiza consultas y gestiona su propia caja.</p>
-                </div>
-              </label>
+              {CLINIC_TYPES.map(opt => {
+                const Icon = opt.icon;
+                return (
+                  <label
+                    key={opt.value}
+                    className={`${styles.typeOption} ${clinicSubtype === opt.value ? styles.typeOptionActive : ''}`}
+                  >
+                    <input
+                      type="radio"
+                      name="clinicSubtype"
+                      value={opt.value}
+                      checked={clinicSubtype === opt.value}
+                      onChange={() => setClinicSubtype(opt.value)}
+                      className={styles.hiddenRadio}
+                    />
+                    <Icon size={22} className={styles.typeIcon} />
+                    <div className={styles.typeText}>
+                      <h4>{opt.title}</h4>
+                      <p>{opt.description}</p>
+                    </div>
+                    {clinicSubtype === opt.value && (
+                      <Check size={16} className={styles.typeCheck} />
+                    )}
+                  </label>
+                );
+              })}
             </div>
           </div>
         )}
@@ -177,14 +194,18 @@ export default function ClinicAuthPage() {
                 <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.43-3.4C17.96 1.19 15.24 0 12 0 9.53 0 5.68 2.4 3.68 5.94l3.2 2.39C7.83 5.46 10.48 4.75 12 4.75z"/>
               </svg>
               <span>
-                {portalMode === 'clinic' ? 'Registrar / Ingresar Clínica' : 'Ingresar al Portal Asociados'}
+                {portalMode === 'clinic'
+                  ? 'Registrar / Ingresar mi Clínica'
+                  : 'Ingresar al Portal de Asociados'}
               </span>
             </>
           )}
         </button>
 
         <p className={styles.footer}>
-          Al ingresar aceptas los términos de servicio de enlapet clinic.
+          Al ingresar aceptas los{' '}
+          <a href="/terms" target="_blank" rel="noreferrer">términos de servicio</a>{' '}
+          de enlapet clinic.
         </p>
       </div>
     </div>

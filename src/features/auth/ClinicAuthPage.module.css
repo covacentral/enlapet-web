@@ -410,10 +410,57 @@
   cursor: not-allowed;
 }
 
+/* ── Dropdown check ── */
+.dropdownCheck {
+  margin-left: auto;
+  color: var(--clinic-primary);
+  flex-shrink: 0;
+}
+
+/* ── Type check icon (seleccionado) ── */
+.typeCheck {
+  margin-left: auto;
+  color: var(--clinic-primary);
+  flex-shrink: 0;
+  align-self: center;
+}
+
 /* ── Footer ── */
 .footer {
   margin-top: 24px;
   font-size: 0.74rem;
   color: var(--clinic-muted);
   line-height: 1.5;
+}
+
+.footer a {
+  color: var(--clinic-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.footer a:hover {
+  text-decoration: underline;
+}
+
+/* ── EHR: botón configurar PIN ── */
+.pinConfigBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 10px;
+  border: 1.5px solid hsl(224, 60%, 80%);
+  background: hsl(224, 80%, 97%);
+  color: var(--clinic-primary, hsl(224, 80%, 50%));
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.pinConfigBtn:hover {
+  background: hsl(224, 80%, 93%);
+  border-color: hsl(224, 80%, 60%);
 }
