@@ -3,6 +3,7 @@ import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from './core/firebase/firebase';
 import { AuthProvider, useAuth } from './features/auth/AuthContext';
 import AuthPage from './features/auth/AuthPage';
+import ClinicAuthPage from './features/auth/ClinicAuthPage';
 import RoleSelector from './features/auth/RoleSelector';
 import ClinicDashboard from './features/clinic/ClinicDashboard';
 import VetDirectory from './features/booking/VetDirectory';
@@ -15,6 +16,7 @@ import PetJournal from './features/pet/PetJournal';
 function AppContent() {
   const { user, userData, role, loading } = useAuth();
   const [view, setView] = useState('dashboard'); // dashboard, owner-config, add-pet, public-view, pet-journal, vet-directory
+  const isClinicRoute = window.location.pathname.startsWith('/clinic');
   const [nfcToken, setNfcToken] = useState(null);
   const [selectedPetId, setSelectedPetId] = useState(null);
   const [pets, setPets] = useState([]);
@@ -77,9 +79,9 @@ function AppContent() {
     return <PublicPetView secureToken={nfcToken} />;
   }
 
-  // Si el usuario no está logueado, forzar pantalla de autenticación
+  // Si el usuario no está logueado, elegir pantalla según la ruta
   if (!user) {
-    return <AuthPage />;
+    return isClinicRoute ? <ClinicAuthPage /> : <AuthPage />;
   }
 
   // Si es una clínica o staff clínico, renderizar el panel de la clínica

@@ -132,10 +132,28 @@
 }
 
 .footerText {
-  margin-top: 36px;
+  margin-top: 24px;
   font-size: 0.75rem;
   color: hsl(220, 15%, 55%);
   line-height: 1.5;
+}
+
+.clinicLink {
+  display: inline-block;
+  margin-top: 18px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: hsl(215, 100%, 50%);
+  text-decoration: none;
+  padding: 6px 14px;
+  border-radius: 10px;
+  transition: background 0.2s, color 0.2s;
+  letter-spacing: 0.01em;
+}
+
+.clinicLink:hover {
+  background: hsl(215, 100%, 96%);
+  color: hsl(215, 100%, 40%);
 }
 
 @keyframes fadeIn {
