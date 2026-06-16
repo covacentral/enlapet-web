@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '../../core/firebase/firebase';
 import { useAuth } from '../auth/AuthContext';
 import ClinicAppointmentsPanel from './ClinicAppointmentsPanel';
 import ClinicEhrPanel from './ClinicEhrPanel';
@@ -26,17 +28,11 @@ export default function StaffDashboard() {
   });
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // Extraer datos del staff desde el userData
-  const staffStatus = userData?.staffStatus || null;
-
-  // ── Si es veterinario no verificado → pantalla de verificación ──
-  // La verificación del vet la maneja VetVerificationForm
-  const vetPendingVerification = subRole === 'veterinario' && clinicData && !staffStatus;
-
-  // ── Determinar estado del vet desde la clínica (onSnapshot ya lo actualiza) ──
-  // La fuente de verdad del status del staff está en /clinics/{clinicId}/staff/{uid}
-  // pero AuthContext solo tiene userData. Para el status del vet necesitamos
-  // un listener separado — se implementa en VetStatusGate abajo.
+  const subRoleLabel = {
+    recepcion: 'Recepción',
+    veterinario: 'Médico Veterinario',
+    contabilidad: 'Contabilidad',
+  }[subRole] || 'Asociado';
 
   const menuItems = (() => {
     if (subRole === 'recepcion') {
@@ -56,12 +52,6 @@ export default function StaffDashboard() {
     }
     return [];
   })();
-
-  const subRoleLabel = {
-    recepcion: 'Recepción',
-    veterinario: 'Médico Veterinario',
-    contabilidad: 'Contabilidad',
-  }[subRole] || 'Asociado';
 
   return (
     <div className={styles.shell}>
@@ -144,17 +134,20 @@ export default function StaffDashboard() {
           userId={user?.uid}
           clinicData={clinicData}
         >
-          {/* Paneles según subRole */}
-          {(activeTab === 'appointments') && clinicId && (
-            <ClinicAppointmentsPanel user={user} clinicId={clinicId} vetId={subRole === 'veterinario' ? user?.uid : null} />
+          {activeTab === 'appointments' && clinicId && (
+            <ClinicAppointmentsPanel
+              user={user}
+              clinicId={clinicId}
+              vetId={subRole === 'veterinario' ? user?.uid : null}
+            />
           )}
-          {(activeTab === 'ehr') && clinicId && (
+          {activeTab === 'ehr' && clinicId && (
             <ClinicEhrPanel user={user} clinicId={clinicId} clinicData={clinicData} />
           )}
-          {(activeTab === 'inventory') && clinicId && (
+          {activeTab === 'inventory' && clinicId && (
             <ClinicInventoryPanel user={user} clinicId={clinicId} plan={clinicData?.plan} />
           )}
-          {(activeTab === 'billing') && clinicId && (
+          {activeTab === 'billing' && clinicId && (
             <ClinicBillingPanel user={user} clinicId={clinicId} plan={clinicData?.plan} />
           )}
         </VetStatusGate>
@@ -167,15 +160,10 @@ export default function StaffDashboard() {
 // VetStatusGate — Controla acceso para veterinarios
 // Lee en tiempo real el status del staff desde Firestore
 // ─────────────────────────────────────────────────────────
-import { useEffect, useState as useStateInner } from 'react';
-import { doc, onSnapshot as onSnapshotInner } from 'firebase/firestore';
-import { db } from '../../core/firebase/firebase';
-import VetVerificationForm from './VetVerificationForm';
-
 function VetStatusGate({ subRole, clinicId, userId, clinicData, children }) {
-  const [staffStatus, setStaffStatus] = useStateInner(null);
-  const [loading, setLoading] = useStateInner(true);
-  const [showForm, setShowForm] = useStateInner(false);
+  const [staffStatus, setStaffStatus] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
     if (subRole !== 'veterinario' || !clinicId || !userId) {
@@ -184,7 +172,7 @@ function VetStatusGate({ subRole, clinicId, userId, clinicData, children }) {
     }
 
     const staffRef = doc(db, 'clinics', clinicId, 'staff', userId);
-    const unsub = onSnapshotInner(staffRef, (snap) => {
+    const unsub = onSnapshot(staffRef, (snap) => {
       if (snap.exists()) {
         setStaffStatus(snap.data().status || 'pending_vet_verification');
       } else {
@@ -199,10 +187,9 @@ function VetStatusGate({ subRole, clinicId, userId, clinicData, children }) {
   // No vet → render children sin restricción
   if (subRole !== 'veterinario') return children;
   if (loading) return null;
-
   if (staffStatus === 'verified') return children;
 
-  // Pendiente de verificación
+  // Pendiente de verificación (docs ya enviados)
   if (staffStatus === 'pending') {
     return (
       <div className={styles.lockOverlay}>
@@ -239,7 +226,7 @@ function VetStatusGate({ subRole, clinicId, userId, clinicData, children }) {
     );
   }
 
-  // Sin documentos aún → formulario de verificación
+  // Sin documentos aún (pending_vet_verification) → mostrar formulario
   if (showForm) return <VetVerificationForm onBack={() => setShowForm(false)} />;
 
   return (
@@ -250,9 +237,10 @@ function VetStatusGate({ subRole, clinicId, userId, clinicData, children }) {
         </div>
         <h3>Verificación Requerida</h3>
         <p>
-          Tu cuenta de médico veterinario está vinculada a <strong>{clinicData?.name || 'la clínica'}</strong>,
-          pero necesitas verificar tu tarjeta profesional ante <strong>covacentral</strong> para poder
-          firmar historias clínicas y aparecer disponible para citas.
+          Tu cuenta de médico veterinario está vinculada a{' '}
+          <strong>{clinicData?.name || 'la clínica'}</strong>, pero necesitas verificar tu
+          tarjeta profesional ante <strong>covacentral</strong> para firmar historias clínicas
+          y aparecer disponible para citas.
         </p>
         <button onClick={() => setShowForm(true)} className={styles.lockBtn}>
           Verificar mi Tarjeta Profesional
