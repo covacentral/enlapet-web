@@ -1,0 +1,139 @@
+/* ClinicVerificationGate.module.css */
+
+.gateContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 24px 20px;
+  background: hsl(220, 25%, 97%);
+  font-family: 'Outfit', sans-serif;
+}
+
+.gateCard {
+  background: white;
+  border-radius: 24px;
+  padding: 36px 28px;
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.07);
+  border: 1.5px solid hsl(220, 20%, 92%);
+  animation: cardIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.gateIcon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
+
+.pending {
+  background: hsl(38, 100%, 94%);
+  color: hsl(38, 90%, 40%);
+}
+
+.rejected, .suspended {
+  background: hsl(0, 100%, 95%);
+  color: hsl(0, 75%, 50%);
+}
+
+.gateCard h2 {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: hsl(220, 30%, 12%);
+  margin-bottom: 10px;
+}
+
+.gateCard p {
+  font-size: 0.9rem;
+  color: hsl(220, 15%, 45%);
+  line-height: 1.6;
+  margin-bottom: 14px;
+}
+
+.timeNote {
+  font-size: 0.83rem !important;
+  background: hsl(220, 30%, 97%);
+  border-radius: 12px;
+  padding: 12px 16px;
+  border: 1px solid hsl(220, 20%, 90%);
+  text-align: left;
+  color: hsl(220, 20%, 40%) !important;
+}
+
+.reasonBox {
+  background: hsl(0, 100%, 97%);
+  border: 1px solid hsl(0, 70%, 88%);
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 0.86rem;
+  color: hsl(0, 60%, 40%);
+  text-align: left;
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+.contactNote {
+  font-size: 0.83rem !important;
+  color: hsl(220, 15%, 50%) !important;
+}
+
+.contactNote a {
+  color: hsl(142, 70%, 38%);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.primaryBtn {
+  width: 100%;
+  padding: 13px;
+  background: hsl(224, 80%, 55%);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin-bottom: 10px;
+  transition: background 0.2s, transform 0.1s;
+  box-shadow: 0 4px 14px rgba(31, 60, 160, 0.25);
+}
+
+.primaryBtn:hover {
+  background: hsl(224, 80%, 48%);
+  transform: translateY(-1px);
+}
+
+.logoutBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 18px;
+  background: transparent;
+  color: hsl(220, 15%, 55%);
+  border: 1px solid hsl(220, 20%, 88%);
+  border-radius: 10px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-top: 6px;
+}
+
+.logoutBtn:hover {
+  background: hsl(220, 20%, 96%);
+  color: hsl(220, 30%, 30%);
+}

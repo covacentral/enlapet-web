@@ -4,54 +4,85 @@ import { db } from './core/firebase/firebase';
 import { AuthProvider, useAuth } from './features/auth/AuthContext';
 import AuthPage from './features/auth/AuthPage';
 import ClinicAuthPage from './features/auth/ClinicAuthPage';
-import RoleSelector from './features/auth/RoleSelector';
-import ClinicDashboard from './features/clinic/ClinicDashboard';
-import VetDirectory from './features/booking/VetDirectory';
+import AdminPanel from './features/admin/AdminPanel';
+import ClinicRouter from './features/clinic/ClinicRouter';
 import PetDashboard from './features/pet/PetDashboard';
 import OwnerConfig from './features/owner/OwnerConfig';
 import AddPetModal from './features/pet/AddPetModal';
 import PublicPetView from './features/nfc/PublicPetView';
 import PetJournal from './features/pet/PetJournal';
+import VetDirectory from './features/booking/VetDirectory';
 
+// ─────────────────────────────────────────────────────────
+// Pantalla de carga
+// ─────────────────────────────────────────────────────────
+function LoadingScreen() {
+  return (
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: '100vh',
+      fontFamily: "'Outfit', sans-serif",
+      gap: '16px',
+    }}>
+      <div style={{
+        width: '48px',
+        height: '48px',
+        border: '3px solid hsl(220, 20%, 90%)',
+        borderTopColor: 'hsl(350, 90%, 60%)',
+        borderRadius: '50%',
+        animation: 'spin 0.8s linear infinite',
+      }} />
+      <span style={{ color: 'hsl(220, 20%, 50%)', fontWeight: 600, fontSize: '0.9rem' }}>
+        Cargando enlapet...
+      </span>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+// AppContent — lógica de routing principal
+// ─────────────────────────────────────────────────────────
 function AppContent() {
-  const { user, userData, role, loading } = useAuth();
-  const [view, setView] = useState('dashboard'); // dashboard, owner-config, add-pet, public-view, pet-journal, vet-directory
-  const isClinicRoute = window.location.pathname.startsWith('/clinic');
+  const { user, userData, role, isAdmin, clinicSubtype, subRole, loading } = useAuth();
+  const [view, setView] = useState('dashboard');
   const [nfcToken, setNfcToken] = useState(null);
   const [selectedPetId, setSelectedPetId] = useState(null);
   const [pets, setPets] = useState([]);
   const [petsLoading, setPetsLoading] = useState(true);
 
-  // Escuchador en tiempo real de mascotas del dueño (Compartido para optimizar Firestore)
+  // Detectar ruta del navegador
+  const pathname = window.location.pathname;
+  const isClinicRoute = pathname.startsWith('/clinic');
+  const isPublicPetRoute = pathname.startsWith('/p/');
+
+  // ── Listener en tiempo real de mascotas del dueño ──
   useEffect(() => {
     if (!user || role !== 'owner') {
       setPetsLoading(false);
       return;
     }
-    
     const petsRef = collection(db, 'pets');
     const q = query(petsRef, where('ownerId', '==', user.uid));
-
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const petsList = [];
-      querySnapshot.forEach((doc) => {
-        petsList.push({ id: doc.id, ...doc.data() });
-      });
-      setPets(petsList);
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const list = [];
+      snapshot.forEach((doc) => list.push({ id: doc.id, ...doc.data() }));
+      setPets(list);
       setPetsLoading(false);
-    }, (error) => {
-      console.error("Error al escuchar mascotas en App:", error);
+    }, (err) => {
+      console.error('Error al escuchar mascotas:', err);
       setPetsLoading(false);
     });
-
     return () => unsubscribe();
   }, [user, role]);
 
-  // Router nativo por análisis de Pathname (para escaneos de NFC /p/<token>)
+  // ── Ruta pública NFC /p/<token> ──
   useEffect(() => {
-    const path = window.location.pathname;
-    if (path.startsWith('/p/')) {
-      const token = path.split('/p/')[1];
+    if (isPublicPetRoute) {
+      const token = pathname.split('/p/')[1];
       if (token) {
         setNfcToken(token);
         setView('public-view');
@@ -59,69 +90,56 @@ function AppContent() {
     }
   }, []);
 
-  if (loading) {
-    return (
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '100vh',
-        fontFamily: "'Outfit', sans-serif",
-        color: '#666'
-      }}>
-        Cargando EnlaPet...
-      </div>
-    );
-  }
+  // ── Pantalla de carga ──
+  if (loading) return <LoadingScreen />;
 
-  // Si la vista es el perfil público del NFC, renderizar sin exigir autenticación
+  // ── Vista pública NFC (sin autenticación) ──
   if (view === 'public-view' && nfcToken) {
     return <PublicPetView secureToken={nfcToken} />;
   }
 
-  // Si el usuario no está logueado, elegir pantalla según la ruta
+  // ── Sin sesión → login según ruta ──
   if (!user) {
     return isClinicRoute ? <ClinicAuthPage /> : <AuthPage />;
   }
 
-  // Si es una clínica o staff clínico, renderizar el panel de la clínica
-  if (role === 'clinic' || role === 'staff') {
-    return <ClinicDashboard />;
+  // ── Admin covacentral → Panel de administración ──
+  if (isAdmin) {
+    return <AdminPanel />;
   }
 
-  // Router interno del Dashboard privado del dueño de mascotas
+  // ── Clinic o Staff → ClinicRouter maneja el subrouting ──
+  if (role === 'clinic' || role === 'staff') {
+    return <ClinicRouter />;
+  }
+
+  // ── Owner → Dashboard de mascotas ──
   switch (view) {
     case 'owner-config':
       return (
-        <OwnerConfig 
-          onSaveComplete={() => setView('dashboard')} 
-          onBack={() => setView('dashboard')} 
+        <OwnerConfig
+          onSaveComplete={() => setView('dashboard')}
+          onBack={() => setView('dashboard')}
         />
       );
+
     case 'add-pet':
       return (
-        <AddPetModal 
-          onSaveComplete={() => {
-            setSelectedPetId(null);
-            setView('dashboard');
-          }} 
-          onBack={() => {
-            setSelectedPetId(null);
-            setView('dashboard');
-          }} 
+        <AddPetModal
+          onSaveComplete={() => { setSelectedPetId(null); setView('dashboard'); }}
+          onBack={() => { setSelectedPetId(null); setView('dashboard'); }}
           petId={selectedPetId}
         />
       );
+
     case 'pet-journal':
       return (
-        <PetJournal 
-          petId={selectedPetId} 
-          onBack={() => {
-            setSelectedPetId(null);
-            setView('dashboard');
-          }} 
+        <PetJournal
+          petId={selectedPetId}
+          onBack={() => { setSelectedPetId(null); setView('dashboard'); }}
         />
       );
+
     case 'vet-directory':
       return (
         <VetDirectory
@@ -131,31 +149,26 @@ function AppContent() {
           onBack={() => setView('dashboard')}
         />
       );
+
     case 'dashboard':
     default:
       return (
-        <PetDashboard 
+        <PetDashboard
           petsList={pets}
           petsLoading={petsLoading}
           onNavigateToOwnerConfig={() => setView('owner-config')}
-          onNavigateToAddPet={() => {
-            setSelectedPetId(null);
-            setView('add-pet');
-          }}
-          onNavigateToPetDetail={(petId) => {
-            setSelectedPetId(petId);
-            setView('pet-journal');
-          }}
-          onNavigateToEditPet={(petId) => {
-            setSelectedPetId(petId);
-            setView('add-pet');
-          }}
+          onNavigateToAddPet={() => { setSelectedPetId(null); setView('add-pet'); }}
+          onNavigateToPetDetail={(petId) => { setSelectedPetId(petId); setView('pet-journal'); }}
+          onNavigateToEditPet={(petId) => { setSelectedPetId(petId); setView('add-pet'); }}
           onNavigateToVetDirectory={() => setView('vet-directory')}
         />
       );
   }
 }
 
+// ─────────────────────────────────────────────────────────
+// App root
+// ─────────────────────────────────────────────────────────
 export default function App() {
   return (
     <AuthProvider>

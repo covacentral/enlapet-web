@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { collection, doc, setDoc, onSnapshot, addDoc, query, orderBy } from 'firebase/firestore';
+import React, { useState, useEffect, useMemo } from 'react';
+import { collection, doc, setDoc, onSnapshot, addDoc, updateDoc, increment, query, orderBy } from 'firebase/firestore';
 import { db } from '../../core/firebase/firebase';
 import { FileText, Plus, DollarSign, Wallet, CreditCard, Search, X, Check, Save } from 'lucide-react';
 import styles from './ClinicBillingPanel.module.css';
 
-export default function ClinicBillingPanel({ user }) {
+export default function ClinicBillingPanel({ user, clinicId, plan }) {
   const [invoices, setInvoices] = useState([]);
   const [inventory, setInventory] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -20,7 +20,7 @@ export default function ClinicBillingPanel({ user }) {
 
   useEffect(() => {
     if (!user) return;
-    const invRef = collection(db, 'clinics', user.uid, 'invoices');
+    const invRef = collection(db, 'clinics', clinicId, 'invoices');
     const q = query(invRef, orderBy('createdAt', 'desc'));
     
     const unsubscribe = onSnapshot(q, (snap) => {
@@ -31,7 +31,7 @@ export default function ClinicBillingPanel({ user }) {
     });
 
     // Cargar inventario para poder facturar productos fácilmente
-    const stockRef = collection(db, 'clinics', user.uid, 'inventory');
+    const stockRef = collection(db, 'clinics', clinicId, 'inventory');
     const unsubscribeStock = onSnapshot(stockRef, (snap) => {
       const list = [];
       snap.forEach(d => list.push({ id: d.id, ...d.data() }));
@@ -42,7 +42,7 @@ export default function ClinicBillingPanel({ user }) {
       unsubscribe();
       unsubscribeStock();
     };
-  }, [user]);
+  }, [clinicId]);
 
   const handleAddItem = () => {
     setItems([...items, { description: '', qty: 1, unitPrice: 0, taxRate: 0 }]);
@@ -102,8 +102,19 @@ export default function ClinicBillingPanel({ user }) {
         createdAt: new Date().toISOString()
       };
 
-      const invCol = collection(db, 'clinics', user.uid, 'invoices');
+      const invCol = collection(db, 'clinics', clinicId, 'invoices');
       await addDoc(invCol, invoiceData);
+
+      // Descontar stock del inventario para items vinculados a productos
+      for (const item of items) {
+        if (item.productId) {
+          const prodRef = doc(db, 'clinics', clinicId, 'inventory', item.productId);
+          await updateDoc(prodRef, {
+            stock: increment(-(parseInt(item.qty) || 1)),
+            updatedAt: new Date().toISOString(),
+          });
+        }
+      }
 
       // Cerrar formulario y limpiar
       setShowForm(false);
@@ -118,11 +129,13 @@ export default function ClinicBillingPanel({ user }) {
     }
   };
 
-  // Calcular reporte diario de cuadre de caja
-  const cashTotal = invoices.filter(i => i.paymentMethod === 'efectivo').reduce((acc, curr) => acc + curr.totals.total, 0);
-  const transferTotal = invoices.filter(i => i.paymentMethod === 'transferencia').reduce((acc, curr) => acc + curr.totals.total, 0);
-  const cardTotal = invoices.filter(i => i.paymentMethod === 'tarjeta').reduce((acc, curr) => acc + curr.totals.total, 0);
-  const ledgerTotal = cashTotal + transferTotal + cardTotal;
+  // Cuadre de caja: SOLO facturas de HOY
+  const todayStr = new Date().toISOString().split('T')[0];
+  const todayInvoices = invoices.filter(i => i.createdAt?.startsWith(todayStr));
+  const cashTotal     = todayInvoices.filter(i => i.paymentMethod === 'efectivo').reduce((acc, c) => acc + (c.totals?.total || 0), 0);
+  const transferTotal = todayInvoices.filter(i => i.paymentMethod === 'transferencia').reduce((acc, c) => acc + (c.totals?.total || 0), 0);
+  const cardTotal     = todayInvoices.filter(i => i.paymentMethod === 'tarjeta').reduce((acc, c) => acc + (c.totals?.total || 0), 0);
+  const ledgerTotal   = cashTotal + transferTotal + cardTotal;
 
   return (
     <div className={styles.container}>

@@ -4,7 +4,7 @@ import { db } from '../../core/firebase/firebase';
 import { Package, Plus, Trash2, Edit2, AlertTriangle, Search, Save, X } from 'lucide-react';
 import styles from './ClinicInventoryPanel.module.css';
 
-export default function ClinicInventoryPanel({ user }) {
+export default function ClinicInventoryPanel({ user, clinicId, plan }) {
   const [inventory, setInventory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -22,8 +22,8 @@ export default function ClinicInventoryPanel({ user }) {
   });
 
   useEffect(() => {
-    if (!user) return;
-    const invRef = collection(db, 'clinics', user.uid, 'inventory');
+    if (!clinicId) return;
+    const invRef = collection(db, 'clinics', clinicId, 'inventory');
     const unsubscribe = onSnapshot(invRef, (snap) => {
       const list = [];
       snap.forEach(d => list.push({ id: d.id, ...d.data() }));
@@ -32,7 +32,7 @@ export default function ClinicInventoryPanel({ user }) {
     });
 
     return () => unsubscribe();
-  }, [user]);
+  }, [clinicId]);
 
   const handleOpenAdd = () => {
     setEditingId(null);
@@ -63,7 +63,7 @@ export default function ClinicInventoryPanel({ user }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const invRef = collection(db, 'clinics', user.uid, 'inventory');
+      const invRef = collection(db, 'clinics', clinicId, 'inventory');
       const payload = {
         name: productForm.name,
         stock: parseInt(productForm.stock) || 0,
@@ -75,7 +75,7 @@ export default function ClinicInventoryPanel({ user }) {
       };
 
       if (editingId) {
-        const docRef = doc(db, 'clinics', user.uid, 'inventory', editingId);
+        const docRef = doc(db, 'clinics', clinicId, 'inventory', editingId);
         await updateDoc(docRef, payload);
       } else {
         const newDocRef = doc(invRef);
@@ -94,7 +94,7 @@ export default function ClinicInventoryPanel({ user }) {
   const handleDelete = async (id) => {
     if (!window.confirm("¿Seguro que deseas eliminar este producto del inventario?")) return;
     try {
-      const docRef = doc(db, 'clinics', user.uid, 'inventory', id);
+      const docRef = doc(db, 'clinics', clinicId, 'inventory', id);
       await deleteDoc(docRef);
     } catch (err) {
       console.error(err);

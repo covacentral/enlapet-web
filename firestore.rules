@@ -2,128 +2,243 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Funciones de ayuda
+    // ─────────────────────────────────────────────────────────
+    // FUNCIONES DE AYUDA
+    // ─────────────────────────────────────────────────────────
+
     function isAuthenticated() {
       return request.auth != null;
     }
-    
+
+    // Admin: SOLO por email exacto. Sin regex peligrosa.
     function isAdmin() {
-      return isAuthenticated() && 
-        ('email' in request.auth.token) && 
-        (request.auth.token.email == 'covacentral@gmail.com' || request.auth.token.email.matches('.*admin.*'));
+      return isAuthenticated() &&
+        request.auth.token.email == 'covacentral@gmail.com';
     }
-    
+
     function isOwner(userId) {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
-    // 1. Colección de Usuarios
+    // Comprueba si el usuario autenticado es staff verificado de una clínica
+    function isVerifiedStaffOf(clinicId) {
+      return isAuthenticated() &&
+        exists(/databases/$(database)/documents/clinics/$(clinicId)/staff/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/clinics/$(clinicId)/staff/$(request.auth.uid)).data.status == 'verified';
+    }
+
+    // Comprueba si el usuario es veterinario verificado de una clínica
+    function isVerifiedVetOf(clinicId) {
+      return isAuthenticated() &&
+        exists(/databases/$(database)/documents/clinics/$(clinicId)/staff/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/clinics/$(clinicId)/staff/$(request.auth.uid)).data.subRole == 'veterinario' &&
+        get(/databases/$(database)/documents/clinics/$(clinicId)/staff/$(request.auth.uid)).data.status == 'verified';
+    }
+
+    // Comprueba si el usuario es el admin (propietario) de una clínica
+    function isClinicAdmin(clinicId) {
+      return isAuthenticated() && request.auth.uid == clinicId;
+    }
+
+    // ─────────────────────────────────────────────────────────
+    // 1. USUARIOS /users/{userId}
+    // ─────────────────────────────────────────────────────────
     match /users/{userId} {
-      // Regla principal para dueños y administradores (segura, sin gets externos)
-      allow read, write: if isAdmin() || isOwner(userId);
-      
-      // Regla secundaria para permitir que las clínicas busquen asociados por correo
-      allow read: if isAuthenticated() && 
-        exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+      // El admin puede hacer todo
+      allow read, write: if isAdmin();
+
+      // El propio usuario puede leer y escribir su propio doc
+      allow read, write: if isOwner(userId);
+
+      // Las clínicas verificadas pueden buscar usuarios por email (para invitar staff)
+      // Solo lectura, nunca escritura sobre docs ajenos
+      allow read: if isAuthenticated() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'clinic';
     }
 
-    // 2. Colección de Mascotas (Pets)
+    // ─────────────────────────────────────────────────────────
+    // 2. MASCOTAS /pets/{petId}
+    // ─────────────────────────────────────────────────────────
     match /pets/{petId} {
-      allow read, update, delete: if isAdmin() || (isAuthenticated() && resource.data.ownerId == request.auth.uid);
-      allow create: if isAuthenticated() && request.resource.data.ownerId == request.auth.uid;
-      allow get: if true; 
+      // Lectura pública individual (necesaria para NFC tags)
+      allow get: if true;
 
-      // Subcolección de historial clínico
+      // Listado y modificación: solo el dueño o admin
+      allow list: if isAdmin() || (isAuthenticated() && resource.data.ownerId == request.auth.uid);
+      allow update, delete: if isAdmin() || (isAuthenticated() && resource.data.ownerId == request.auth.uid);
+      allow create: if isAuthenticated() && request.resource.data.ownerId == request.auth.uid;
+
+      // Subcolección: Historias Clínicas
       match /medical_records/{recordId} {
-        allow read, write: if isAdmin() || (isAuthenticated() && get(/databases/$(database)/documents/pets/$(petId)).data.ownerId == request.auth.uid);
-        allow get: if true;
+        // Lectura: dueño, admin, o veterinario verificado de cualquier clínica con permiso
+        allow read: if isAdmin() ||
+          (isAuthenticated() && get(/databases/$(database)/documents/pets/$(petId)).data.ownerId == request.auth.uid) ||
+          (isAuthenticated() && exists(/databases/$(database)/documents/clinical_permissions/$(request.auth.uid + '_' + petId)) &&
+           get(/databases/$(database)/documents/clinical_permissions/$(request.auth.uid + '_' + petId)).data.status == 'authorized');
+
+        // Escritura: solo admin o veterinario autorizado (con permiso del dueño)
+        allow create: if isAdmin() ||
+          (isAuthenticated() &&
+           exists(/databases/$(database)/documents/clinical_permissions/$(request.auth.uid + '_' + petId)) &&
+           get(/databases/$(database)/documents/clinical_permissions/$(request.auth.uid + '_' + petId)).data.status == 'authorized');
+
+        // Un registro firmado NO se puede modificar ni eliminar (inmutabilidad)
+        allow update: if isAdmin() && !('signed' in resource.data && resource.data.signed != false);
+        allow delete: if isAdmin();
       }
     }
 
-    // 3. Mapeo de NFC (secureToken -> petId)
+    // ─────────────────────────────────────────────────────────
+    // 3. NFC MAPPINGS /nfc_mappings/{token}
+    // ─────────────────────────────────────────────────────────
     match /nfc_mappings/{secureToken} {
       allow read: if true;
       allow create: if isAuthenticated() && request.resource.data.ownerId == request.auth.uid;
       allow update, delete: if isAdmin() || (isAuthenticated() && resource.data.ownerId == request.auth.uid);
     }
 
-    // 4. Colección de Clínicas (Clinics)
+    // ─────────────────────────────────────────────────────────
+    // 4. CLÍNICAS /clinics/{clinicId}
+    // ─────────────────────────────────────────────────────────
     match /clinics/{clinicId} {
+      // Directorio público: lectura libre (para el buscador de veterinarias)
       allow read: if true;
-      allow write: if isAdmin() || (isAuthenticated() && request.auth.uid == clinicId);
 
-      // Subcolección de Inventario: Solo el admin o el contador pueden ver/editar
-      match /inventory/{itemId} {
-        allow read, write: if isAuthenticated() && (
-          request.auth.uid == clinicId || 
-          (exists(/databases/$(database)/documents/clinics/$(clinicId)/staff/$(request.auth.uid)) && 
-           exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.subRole == 'contabilidad')
-        );
-      }
+      // Solo el admin de la clínica puede crearla
+      allow create: if isAuthenticated() && request.auth.uid == clinicId;
 
-      // Subcolección de Facturas: Solo el admin o el contador pueden ver/editar
-      match /invoices/{invoiceId} {
-        allow read, write: if isAuthenticated() && (
-          request.auth.uid == clinicId || 
-          (exists(/databases/$(database)/documents/clinics/$(clinicId)/staff/$(request.auth.uid)) && 
-           exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.subRole == 'contabilidad')
-        );
-      }
+      // El admin de la clínica puede actualizar todo EXCEPTO status
+      // Solo covacentral puede cambiar status (aprobación/rechazo)
+      allow update: if isAdmin() ||
+        (isClinicAdmin(clinicId) && !('status' in request.resource.data));
 
-      // Subcolección de Citas: Solo admin, el dueño de la mascota, o staff con rol recepcion/veterinario
+      // Borrar: solo covacentral
+      allow delete: if isAdmin();
+
+      // ── Citas ──────────────────────────────────────────────
       match /appointments/{appointmentId} {
+        // Crear cita: cualquier usuario autenticado (dueños de mascotas)
         allow create: if isAuthenticated();
-        allow read, update, delete: if isAuthenticated() && (
-          request.auth.uid == clinicId || 
-          resource.data.ownerId == request.auth.uid || 
-          (exists(/databases/$(database)/documents/clinics/$(clinicId)/staff/$(request.auth.uid)) && 
-           exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.subRole in ['recepcion', 'veterinario'])
-        );
+
+        // Leer: admin, dueño de la cita, admin de la clínica, recepción o vet verificados
+        allow read: if isAdmin() ||
+          isClinicAdmin(clinicId) ||
+          (isAuthenticated() && resource.data.ownerId == request.auth.uid) ||
+          isVerifiedStaffOf(clinicId);
+
+        // Actualizar/borrar: admin de la clínica o staff verificado con rol de recepción/vet
+        allow update, delete: if isAdmin() ||
+          isClinicAdmin(clinicId) ||
+          isVerifiedStaffOf(clinicId);
       }
 
-      // Subcolección de Logs de Auditoría
+      // ── Inventario (Premium) ────────────────────────────────
+      match /inventory/{itemId} {
+        allow read, write: if isAdmin() ||
+          isClinicAdmin(clinicId) ||
+          isVerifiedStaffOf(clinicId);
+      }
+
+      // ── Facturas (Premium) ──────────────────────────────────
+      match /invoices/{invoiceId} {
+        allow read, write: if isAdmin() ||
+          isClinicAdmin(clinicId) ||
+          isVerifiedStaffOf(clinicId);
+      }
+
+      // ── Logs de Auditoría ───────────────────────────────────
       match /audit_logs/{logId} {
-        allow create: if isAuthenticated() && (
-          request.auth.uid == clinicId || 
-          (exists(/databases/$(database)/documents/clinics/$(clinicId)/staff/$(request.auth.uid)) && 
-           exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.subRole == 'veterinario')
-        );
-        allow read: if isAuthenticated() && request.auth.uid == clinicId;
+        // Solo la clínica (admin) y sus vets verificados pueden crear logs
+        allow create: if isAdmin() || isClinicAdmin(clinicId) || isVerifiedVetOf(clinicId);
+        // Solo el admin de la clínica o covacentral pueden leer los logs
+        allow read: if isAdmin() || isClinicAdmin(clinicId);
       }
 
-      // Subcolección de Staff: solo admin o el staff mismo pueden leer
+      // ── Staff ───────────────────────────────────────────────
       match /staff/{staffId} {
-        allow read: if isAdmin() || (isAuthenticated() && (request.auth.uid == clinicId || request.auth.uid == staffId));
-        allow write: if isAdmin() || (isAuthenticated() && request.auth.uid == clinicId);
+        // Leer: admin de la clínica, covacentral, o el propio staff
+        allow read: if isAdmin() || isClinicAdmin(clinicId) || isOwner(staffId);
+
+        // Crear/actualizar: solo admin de la clínica o covacentral
+        // La clínica NO puede poner status = 'verified' directamente (solo covacentral)
+        allow create: if isAdmin() || isClinicAdmin(clinicId);
+        allow update: if isAdmin() ||
+          (isClinicAdmin(clinicId) && !('status' in request.resource.data));
+
+        // Borrar (retirar staff): admin de la clínica o covacentral
+        allow delete: if isAdmin() || isClinicAdmin(clinicId);
       }
     }
 
-    // 5. Colección de Permisos Clínicos
-    match /clinical_permissions/{permissionId} {
-      allow read: if isAuthenticated() && (request.auth.uid == resource.data.vetId || request.auth.uid == resource.data.ownerId);
-      allow create: if isAuthenticated() && request.resource.data.vetId == request.auth.uid;
-      allow update, delete: if isAuthenticated() && (request.auth.uid == resource.data.ownerId || request.auth.uid == resource.data.vetId);
+    // ─────────────────────────────────────────────────────────
+    // 5. VERIFICACIONES DE CLÍNICAS /clinic_verifications/{clinicId}
+    // ─────────────────────────────────────────────────────────
+    match /clinic_verifications/{clinicId} {
+      // La propia clínica puede leer su solicitud y crearla/actualizarla (para re-envíos)
+      allow read, create: if isAuthenticated() && request.auth.uid == clinicId;
+      allow update: if isAdmin() ||
+        (isAuthenticated() && request.auth.uid == clinicId && !('status' in request.resource.data));
+
+      // Solo covacentral puede aprobar/rechazar (cambiar status)
+      allow write: if isAdmin();
     }
 
-    // 6. Colección de Verificaciones de Veterinarios (Staff)
+    // ─────────────────────────────────────────────────────────
+    // 6. VERIFICACIONES DE VETERINARIOS /vet_verifications/{vetId}
+    // ─────────────────────────────────────────────────────────
     match /vet_verifications/{vetId} {
-      allow read: if isAdmin() || (isAuthenticated() && request.auth.uid == vetId);
-      allow write: if isAdmin() || (isAuthenticated() && request.auth.uid == vetId);
+      // El veterinario puede leer y crear su propia solicitud
+      allow read, create: if isAuthenticated() && request.auth.uid == vetId;
+
+      // El vet puede actualizar solo si no hay status (re-envío de docs)
+      allow update: if isAdmin() ||
+        (isAuthenticated() && request.auth.uid == vetId && !('status' in request.resource.data));
+
+      // Solo covacentral puede aprobar/rechazar
+      allow write: if isAdmin();
     }
 
-    // 7. Colección de Invitaciones
+    // ─────────────────────────────────────────────────────────
+    // 7. PERMISOS CLÍNICOS /clinical_permissions/{permId}
+    // ─────────────────────────────────────────────────────────
+    match /clinical_permissions/{permissionId} {
+      // Leer: el vet o el dueño de la mascota
+      allow read: if isAdmin() ||
+        (isAuthenticated() && request.auth.uid == resource.data.vetId) ||
+        (isAuthenticated() && request.auth.uid == resource.data.ownerId);
+
+      // Crear solicitud: el vet (desde el panel EHR)
+      allow create: if isAuthenticated() && request.resource.data.vetId == request.auth.uid;
+
+      // Actualizar (aprobar/rechazar): el dueño de la mascota
+      allow update: if isAuthenticated() && request.auth.uid == resource.data.ownerId;
+
+      // Borrar: el vet retira su acceso, o el dueño lo revoca
+      allow delete: if isAuthenticated() &&
+        (request.auth.uid == resource.data.vetId || request.auth.uid == resource.data.ownerId);
+    }
+
+    // ─────────────────────────────────────────────────────────
+    // 8. INVITACIONES /invitations/{email}
+    // ─────────────────────────────────────────────────────────
     match /invitations/{email} {
+      // Solo el invitado puede leer su invitación
       allow read: if isAuthenticated() && request.auth.token.email.lower() == email;
-      allow write: if isAdmin() || (
-        isAuthenticated() && 
+
+      // Crear invitación: la clínica verificada
+      allow create: if isAdmin() || (
+        isAuthenticated() &&
         exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'clinic'
       );
+
+      // Borrar invitación: cuando el staff acepta (desde AuthContext) o la clínica cancela
+      allow delete: if isAdmin() ||
+        (isAuthenticated() && request.auth.token.email.lower() == email) ||
+        (isAuthenticated() &&
+         exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'clinic');
     }
   }
 }

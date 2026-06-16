@@ -4,7 +4,7 @@ import { db } from '../../core/firebase/firebase';
 import { Users, Plus, Trash2, ShieldAlert, CheckCircle, Mail, User } from 'lucide-react';
 import styles from './ClinicStaffPanel.module.css';
 
-export default function ClinicStaffPanel({ user, clinicData }) {
+export default function ClinicStaffPanel({ user, clinicId, clinicData }) {
   const [staffList, setStaffList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
@@ -17,8 +17,8 @@ export default function ClinicStaffPanel({ user, clinicData }) {
   });
 
   useEffect(() => {
-    if (!user.uid) return;
-    const staffRef = collection(db, 'clinics', user.uid, 'staff');
+    if (!clinicId) return;
+    const staffRef = collection(db, 'clinics', clinicId, 'staff');
     const unsubscribe = onSnapshot(staffRef, (snap) => {
       const list = [];
       snap.forEach((doc) => {
@@ -50,50 +50,61 @@ export default function ClinicStaffPanel({ user, clinicData }) {
       const q = query(usersRef, where('email', '==', emailClean));
       const snap = await getDocs(q);
 
-      if (snap.empty) {
-        // Fallback: Crear invitación en la colección '/invitations/{email}'
-        const inviteRef = doc(db, 'invitations', emailClean);
-        await setDoc(inviteRef, {
-          email: emailClean,
-          name: nameClean,
-          clinicId: user.uid,
-          clinicName: clinicData?.name || 'Clínica',
-          subRole: newStaff.subRole,
-          createdAt: new Date().toISOString()
-        });
-
-        setNewStaff({ name: '', email: '', subRole: 'veterinario' });
-        alert(`¡Asociado invitado! Como el usuario con correo ${emailClean} aún no se ha registrado, hemos guardado una invitación segura. Cuando esta persona inicie sesión con Google desde el Portal de Asociados usando este correo, su cuenta se configurará automáticamente.`);
+      // Check: ¿ya existe en el equipo?
+      const existingStaff = staffList.find(s => s.email === emailClean);
+      if (existingStaff) {
+        alert(`${emailClean} ya está en el equipo.`);
         setAdding(false);
         return;
       }
 
-      const vetUserDoc = snap.docs[0];
-      const vetUid = vetUserDoc.id;
+      if (snap.empty) {
+        // No tiene cuenta aún → crear invitación
+        // Cuando acepte el invite desde /clinic, AuthContext crea el doc de staff
+        const inviteRef = doc(db, 'invitations', emailClean);
+        await setDoc(inviteRef, {
+          email: emailClean,
+          name: nameClean,
+          clinicId: clinicId,
+          clinicName: clinicData?.name || 'Clínica',
+          subRole: newStaff.subRole,
+          createdAt: new Date().toISOString(),
+          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 días
+        });
+        setNewStaff({ name: '', email: '', subRole: 'veterinario' });
+        alert(`Invitación creada para ${emailClean}. Esta persona debe ingresar a enlapet.com/clinic con ese correo para unirse al equipo.`);
+        setAdding(false);
+        return;
+      }
 
-      // 2. Crear documento de staff en la clínica
-      // Vets inician como 'pending_verification'. Recepción y contabilidad inician como 'verified'.
-      const initialStatus = newStaff.subRole === 'veterinario' ? 'pending_verification' : 'verified';
+      const vetUid = snap.docs[0].id;
+      const initialStatus = newStaff.subRole === 'veterinario' ? 'pending_vet_verification' : 'verified';
 
-      const staffDocRef = doc(db, 'clinics', user.uid, 'staff', vetUid);
+      // Solo crear el doc de staff — NO modificar /users/{vetUid} desde aquí
+      // El usuario deberá iniciar sesión por /clinic para que AuthContext vincule su cuenta
+      const staffDocRef = doc(db, 'clinics', clinicId, 'staff', vetUid);
       await setDoc(staffDocRef, {
         name: nameClean,
         email: emailClean,
-        clinicId: user.uid,
+        clinicId: clinicId,
         clinicName: clinicData?.name || 'Clínica',
         role: 'staff',
         subRole: newStaff.subRole,
         status: initialStatus,
-        createdAt: new Date().toISOString()
+        addedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       });
 
-      // 3. Vincular la clínica en el perfil del usuario (role 'staff', subRole, y clinicId)
-      const userRef = doc(db, 'users', vetUid);
-      await updateDoc(userRef, {
-        clinicId: user.uid,
-        role: 'staff',
+      // Crear también invitación para que al hacer login en /clinic se vincule automáticamente
+      const inviteRef = doc(db, 'invitations', emailClean);
+      await setDoc(inviteRef, {
+        email: emailClean,
+        name: nameClean,
+        clinicId: clinicId,
+        clinicName: clinicData?.name || 'Clínica',
         subRole: newStaff.subRole,
-        updatedAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       });
 
       setNewStaff({ name: '', email: '', subRole: 'veterinario' });
@@ -111,33 +122,18 @@ export default function ClinicStaffPanel({ user, clinicData }) {
   };
 
   const handleRemoveStaff = async (vetId, vetName) => {
-    if (!window.confirm(`¿Estás seguro de que deseas retirar a ${vetName} del equipo médico? Perderá acceso a las historias clínicas.`)) {
-      return;
-    }
-
+    if (!window.confirm(`¿Retirar a ${vetName} del equipo? Perderá acceso a esta clínica.`)) return;
     try {
-      // 1. Eliminar de la subcolección de staff
-      const staffDocRef = doc(db, 'clinics', user.uid, 'staff', vetId);
-      await deleteDoc(staffDocRef);
-
-      // 2. Desvincular en el documento de usuarios (revertir rol a owner)
-      const userRef = doc(db, 'users', vetId);
-      await updateDoc(userRef, {
-        clinicId: null,
-        role: 'owner',
-        updatedAt: new Date().toISOString()
-      });
-
-      // 3. Eliminar de vet_verifications si existe
-      try {
-        const vetVerifyRef = doc(db, 'vet_verifications', vetId);
-        await deleteDoc(vetVerifyRef);
-      } catch (e) {}
-
-      alert(`${vetName} ha sido retirado con éxito.`);
+      await deleteDoc(doc(db, 'clinics', clinicId, 'staff', vetId));
+      // Limpiar verificación si existía
+      try { await deleteDoc(doc(db, 'vet_verifications', vetId)); } catch (_) {}
+      // NOTA: No modificamos /users/{vetId} desde aquí.
+      // Cuando el vet vuelva a iniciar sesión en /clinic, si no tiene invitación
+      // y su clinicId ya no corresponde a ningún staff doc, se le negará el acceso.
+      alert(`${vetName} ha sido retirado del equipo.`);
     } catch (err) {
-      console.error("Error al retirar staff:", err);
-      alert("Error al retirar.");
+      console.error(err);
+      alert('Error al retirar: ' + err.message);
     }
   };
 

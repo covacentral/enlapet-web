@@ -1,0 +1,562 @@
+/* ============================================================
+   AdminPanel.module.css — Panel de Administración covacentral
+   Paleta: gris oscuro + índigo + verde/rojo para estados
+   ============================================================ */
+
+.shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: hsl(220, 25%, 97%);
+  font-family: 'Outfit', sans-serif;
+}
+
+/* ── Header ── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  background: hsl(224, 60%, 18%);
+  color: white;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+}
+
+.headerBrand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brandIcon {
+  color: hsl(142, 70%, 55%);
+}
+
+.brandName {
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  color: white;
+}
+
+.brandBadge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 8px;
+  background: hsl(142, 70%, 45%);
+  color: white;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.logoutBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.85);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 10px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-family: 'Outfit', sans-serif;
+}
+
+.logoutBtn:hover {
+  background: rgba(255,255,255,0.18);
+}
+
+/* ── Tab Navigation ── */
+.tabNav {
+  display: flex;
+  background: white;
+  border-bottom: 2px solid hsl(220, 20%, 92%);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tabNav::-webkit-scrollbar { display: none; }
+
+.tabBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 20px;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: hsl(220, 15%, 50%);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.2s, border-color 0.2s;
+  margin-bottom: -2px;
+}
+
+.tabBtn:hover {
+  color: hsl(224, 80%, 50%);
+}
+
+.tabActive {
+  color: hsl(224, 80%, 50%);
+  border-bottom-color: hsl(224, 80%, 50%);
+}
+
+/* ── Content ── */
+.content {
+  flex: 1;
+  padding: 20px 16px;
+  max-width: 680px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* ── Request List ── */
+.requestList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.requestCard {
+  background: white;
+  border-radius: 16px;
+  border: 1.5px solid hsl(220, 20%, 92%);
+  overflow: hidden;
+  transition: box-shadow 0.2s;
+}
+
+.requestCard:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+}
+
+.requestHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.requestInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.requestIcon {
+  color: hsl(224, 80%, 55%);
+  flex-shrink: 0;
+}
+
+.requestInfo h4 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: hsl(220, 30%, 15%);
+  margin: 0 0 2px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.requestMeta {
+  font-size: 0.78rem;
+  color: hsl(220, 15%, 50%);
+}
+
+.requestActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.chevron {
+  color: hsl(220, 15%, 55%);
+}
+
+/* ── Request Body (expanded) ── */
+.requestBody {
+  padding: 0 16px 16px;
+  border-top: 1px solid hsl(220, 20%, 94%);
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.docGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.docField {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.docField label {
+  font-size: 0.73rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: hsl(220, 15%, 55%);
+}
+
+.docField span {
+  font-size: 0.88rem;
+  color: hsl(220, 30%, 15%);
+  font-weight: 600;
+}
+
+.docField code {
+  background: hsl(220, 30%, 96%);
+  padding: 2px 6px;
+  border-radius: 5px;
+  font-size: 0.82rem;
+  font-family: monospace;
+  color: hsl(224, 80%, 45%);
+}
+
+.verifyLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: hsl(224, 80%, 50%);
+  text-decoration: none;
+  padding: 3px 8px;
+  background: hsl(224, 80%, 97%);
+  border-radius: 6px;
+  border: 1px solid hsl(224, 50%, 88%);
+  transition: background 0.15s;
+}
+
+.verifyLink:hover {
+  background: hsl(224, 80%, 93%);
+}
+
+.docFiles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.fileLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: hsl(224, 80%, 50%);
+  text-decoration: none;
+  padding: 6px 12px;
+  background: white;
+  border: 1.5px solid hsl(224, 50%, 85%);
+  border-radius: 8px;
+  transition: all 0.15s;
+}
+
+.fileLink:hover {
+  background: hsl(224, 80%, 97%);
+  border-color: hsl(224, 80%, 60%);
+}
+
+/* ── Decision Row ── */
+.requestDecisionRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid hsl(220, 20%, 94%);
+}
+
+.submittedAt {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  color: hsl(220, 15%, 55%);
+}
+
+.decisionBtns {
+  display: flex;
+  gap: 8px;
+}
+
+.btnRejectSm {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 14px;
+  background: hsl(0, 100%, 97%);
+  color: hsl(0, 75%, 45%);
+  border: 1.5px solid hsl(0, 70%, 88%);
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: 'Outfit', sans-serif;
+}
+
+.btnRejectSm:hover {
+  background: hsl(0, 100%, 94%);
+  border-color: hsl(0, 70%, 70%);
+}
+
+.btnApproveSm {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 14px;
+  background: hsl(142, 70%, 45%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: 'Outfit', sans-serif;
+  box-shadow: 0 3px 10px rgba(16, 185, 129, 0.25);
+}
+
+.btnApproveSm:hover {
+  background: hsl(142, 70%, 38%);
+  transform: translateY(-1px);
+}
+
+.btnSuspendSm {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  background: hsl(38, 100%, 96%);
+  color: hsl(38, 90%, 40%);
+  border: 1.5px solid hsl(38, 80%, 85%);
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: 'Outfit', sans-serif;
+}
+
+.btnSuspendSm:hover {
+  background: hsl(38, 100%, 90%);
+}
+
+/* ── Directory Card ── */
+.directoryCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+}
+
+/* ── Empty State ── */
+.emptyState {
+  text-align: center;
+  padding: 48px 20px;
+  color: hsl(220, 15%, 55%);
+}
+
+.emptyIcon {
+  color: hsl(142, 60%, 60%);
+  margin-bottom: 12px;
+}
+
+.emptyState p {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.loading {
+  text-align: center;
+  padding: 32px;
+  color: hsl(220, 15%, 55%);
+  font-size: 0.9rem;
+}
+
+/* ── Confirm Modal ── */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  animation: fadeIn 0.15s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.modal {
+  background: white;
+  border-radius: 20px;
+  padding: 28px 24px;
+  max-width: 380px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+  animation: slideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.modalIcon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+
+.modalIconGreen {
+  background: hsl(142, 70%, 94%);
+  color: hsl(142, 70%, 40%);
+}
+
+.modalIconRed {
+  background: hsl(0, 100%, 95%);
+  color: hsl(0, 75%, 50%);
+}
+
+.modal h3 {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: hsl(220, 30%, 15%);
+  margin-bottom: 8px;
+}
+
+.modal p {
+  font-size: 0.9rem;
+  color: hsl(220, 15%, 45%);
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+.modalField {
+  text-align: left;
+  margin-bottom: 16px;
+}
+
+.modalField label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: hsl(220, 15%, 45%);
+  margin-bottom: 6px;
+}
+
+.modalField textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid hsl(220, 20%, 88%);
+  border-radius: 10px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.88rem;
+  color: hsl(220, 30%, 15%);
+  resize: none;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.modalField textarea:focus {
+  border-color: hsl(224, 80%, 55%);
+}
+
+.modalActions {
+  display: flex;
+  gap: 10px;
+}
+
+.btnSecondary {
+  flex: 1;
+  padding: 11px;
+  background: hsl(220, 20%, 96%);
+  color: hsl(220, 20%, 40%);
+  border: none;
+  border-radius: 12px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btnSecondary:hover { background: hsl(220, 20%, 90%); }
+
+.btnApprove {
+  flex: 1;
+  padding: 11px;
+  background: hsl(142, 70%, 45%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+}
+
+.btnApprove:hover { background: hsl(142, 70%, 38%); }
+
+.btnReject {
+  flex: 1;
+  padding: 11px;
+  background: hsl(0, 75%, 50%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.3);
+}
+
+.btnReject:hover { background: hsl(0, 75%, 42%); }
+
+.btnReject:disabled,
+.btnApprove:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
