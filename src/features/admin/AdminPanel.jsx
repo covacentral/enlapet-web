@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   collection, query, where, onSnapshot,
-  doc, updateDoc, getDoc
+  doc, updateDoc, getDoc, getDocs
 } from 'firebase/firestore';
 import { db } from '../../core/firebase/firebase';
 import { useAuth } from '../auth/AuthContext';
@@ -9,7 +9,7 @@ import {
   ShieldCheck, ClipboardList, Stethoscope, Building2,
   CheckCircle2, XCircle, ChevronDown, ChevronUp,
   ExternalLink, LogOut, AlertTriangle, Clock,
-  Users, BadgeCheck
+  Users, BadgeCheck, Nfc, Search, Copy, CheckCheck
 } from 'lucide-react';
 import styles from './AdminPanel.module.css';
 
@@ -483,6 +483,146 @@ function ClinicDirectoryPanel() {
 }
 
 // ─────────────────────────────────────────────────────────
+// Panel: Generador de URL para Tags NFC
+// Solo accesible por covacentral. Busca la mascota por EPID,
+// obtiene su token seguro de /nfc_mappings y genera la URL
+// lista para grabar en el identificador físico.
+// ─────────────────────────────────────────────────────────
+function NfcUrlPanel() {
+  const [epid, setEpid] = useState('ELP-');
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState(null); // { petName, url }
+  const [error, setError] = useState('');
+  const [copied, setCopied] = useState(false);
+
+  const handleInputChange = (e) => {
+    let val = e.target.value.toUpperCase();
+    if (!val.startsWith('ELP-')) {
+      if (['', 'E', 'EL', 'ELP'].includes(val)) { setEpid('ELP-'); return; }
+      val = 'ELP-' + val.replace(/[^A-Z0-9]/g, '');
+    } else {
+      val = 'ELP-' + val.substring(4).replace(/[^A-Z0-9]/g, '');
+    }
+    if (val.length <= 10) setEpid(val);
+  };
+
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    if (epid === 'ELP-' || epid.length < 5) return;
+    setLoading(true);
+    setResult(null);
+    setError('');
+    setCopied(false);
+
+    try {
+      // 1. Buscar la mascota por EPID
+      const petSnap = await getDocs(
+        query(collection(db, 'pets'), where('epid', '==', epid.trim()))
+      );
+      if (petSnap.empty) {
+        setError(`No se encontró ninguna mascota con el EPID "${epid}".`);
+        return;
+      }
+      const petId = petSnap.docs[0].id;
+      const petName = petSnap.docs[0].data().name;
+
+      // 2. Buscar el token NFC asociado a esta mascota
+      const mappingSnap = await getDocs(
+        query(collection(db, 'nfc_mappings'), where('petId', '==', petId))
+      );
+      if (mappingSnap.empty) {
+        setError(`La mascota "${petName}" (${epid}) no tiene un tag NFC asignado todavía. El dueño debe generarlo desde su dashboard.`);
+        return;
+      }
+      const token = mappingSnap.docs[0].data().secureToken || mappingSnap.docs[0].id;
+      const nfcUrl = `${window.location.origin}/p/${token}`;
+
+      setResult({ petName, epid, petId, token, url: nfcUrl });
+    } catch (err) {
+      console.error(err);
+      setError('Error al buscar: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCopy = () => {
+    if (!result?.url) return;
+    navigator.clipboard.writeText(result.url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
+  };
+
+  return (
+    <div className={styles.nfcPanel}>
+      <div className={styles.nfcHeader}>
+        <Nfc size={28} className={styles.nfcIcon} />
+        <div>
+          <h2>Generador de URL para Tags NFC</h2>
+          <p>
+            Busca la mascota por su EPID y obtén la URL segura para programar
+            en el identificador físico. Solo covacentral puede generar estos links.
+          </p>
+        </div>
+      </div>
+
+      <form onSubmit={handleSearch} className={styles.nfcForm}>
+        <input
+          type="text"
+          value={epid}
+          onChange={handleInputChange}
+          placeholder="Ej: ELP-ABC123"
+          className={styles.nfcInput}
+        />
+        <button type="submit" disabled={loading} className={styles.nfcSearchBtn}>
+          <Search size={17} />
+          {loading ? 'Buscando...' : 'Buscar'}
+        </button>
+      </form>
+
+      {error && (
+        <div className={styles.nfcError}>
+          <AlertTriangle size={16} />
+          <span>{error}</span>
+        </div>
+      )}
+
+      {result && (
+        <div className={styles.nfcResult}>
+          <div className={styles.nfcResultHeader}>
+            <CheckCircle2 size={20} className={styles.nfcResultIcon} />
+            <div>
+              <h3>{result.petName}</h3>
+              <span>EPID: <strong>{result.epid}</strong></span>
+            </div>
+          </div>
+
+          <div className={styles.nfcUrlBlock}>
+            <label>URL para grabar en el Tag NFC:</label>
+            <div className={styles.nfcUrlRow}>
+              <code className={styles.nfcUrl}>{result.url}</code>
+              <button onClick={handleCopy} className={styles.nfcCopyBtn} title="Copiar URL">
+                {copied ? <CheckCheck size={16} /> : <Copy size={16} />}
+                {copied ? 'Copiado' : 'Copiar'}
+              </button>
+            </div>
+          </div>
+
+          <div className={styles.nfcMeta}>
+            <span>Token: <code>{result.token}</code></span>
+            <span>Pet ID: <code>{result.petId.substring(0, 12)}…</code></span>
+          </div>
+
+          <div className={styles.nfcInstructions}>
+            <p>📱 <strong>Cómo grabar:</strong> Usa la app <strong>NFC Tools</strong> o <strong>NFC TagWriter</strong> en tu teléfono. Crea un registro de tipo <em>URI/URL</em> y pega la URL de arriba. El tag debe ser <strong>NTAG213 o superior</strong>.</p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
 // AdminPanel — Shell Principal
 // ─────────────────────────────────────────────────────────
 export default function AdminPanel() {
@@ -490,9 +630,10 @@ export default function AdminPanel() {
   const [activeTab, setActiveTab] = useState('clinic_requests');
 
   const tabs = [
-    { id: 'clinic_requests', label: 'Solicitudes Clínicas', icon: ClipboardList },
-    { id: 'vet_requests',    label: 'Solicitudes Vets',    icon: Stethoscope },
-    { id: 'directory',       label: 'Clínicas Verificadas', icon: BadgeCheck },
+    { id: 'clinic_requests', label: 'Solicitudes Clínicas',  icon: ClipboardList },
+    { id: 'vet_requests',    label: 'Solicitudes Vets',      icon: Stethoscope },
+    { id: 'directory',       label: 'Clínicas Verificadas',  icon: BadgeCheck },
+    { id: 'nfc',             label: 'Generador NFC',         icon: Nfc },
   ];
 
   return (
@@ -531,6 +672,7 @@ export default function AdminPanel() {
         {activeTab === 'clinic_requests' && <ClinicRequestsPanel />}
         {activeTab === 'vet_requests'    && <VetRequestsPanel />}
         {activeTab === 'directory'       && <ClinicDirectoryPanel />}
+        {activeTab === 'nfc'             && <NfcUrlPanel />}
       </main>
     </div>
   );

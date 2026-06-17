@@ -560,3 +560,150 @@
   cursor: not-allowed;
   transform: none;
 }
+
+/* ── NFC URL Generator Panel ── */
+.nfcPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.nfcHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 24px;
+  background: linear-gradient(135deg, hsl(224, 60%, 18%) 0%, hsl(224, 55%, 28%) 100%);
+  border-radius: 18px;
+  color: white;
+}
+
+.nfcIcon { color: hsl(173, 70%, 65%); flex-shrink: 0; margin-top: 2px; }
+
+.nfcHeader h2 { font-size: 1.15rem; font-weight: 800; margin-bottom: 4px; }
+.nfcHeader p  { font-size: 0.84rem; opacity: 0.8; line-height: 1.5; }
+
+.nfcForm { display: flex; gap: 10px; }
+
+.nfcInput {
+  flex: 1;
+  padding: 13px 16px;
+  border-radius: 12px;
+  border: 1.5px solid hsl(224, 30%, 85%);
+  font-size: 1rem;
+  font-family: 'Outfit', monospace;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.nfcInput:focus {
+  border-color: hsl(224, 60%, 55%);
+  box-shadow: 0 0 0 3px hsla(224, 80%, 55%, 0.12);
+}
+
+.nfcSearchBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 22px;
+  border-radius: 12px;
+  border: none;
+  background: hsl(224, 70%, 50%);
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.nfcSearchBtn:hover:not(:disabled) { background: hsl(224, 70%, 42%); transform: translateY(-1px); }
+.nfcSearchBtn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.nfcError {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 16px;
+  background: hsl(0, 100%, 97%);
+  border: 1.5px solid hsl(0, 70%, 88%);
+  border-radius: 12px;
+  color: hsl(0, 65%, 45%);
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+.nfcResult {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+  background: white;
+  border-radius: 18px;
+  border: 1.5px solid hsl(173, 40%, 85%);
+  box-shadow: 0 4px 20px hsla(173, 60%, 40%, 0.08);
+}
+
+.nfcResultHeader { display: flex; align-items: center; gap: 12px; }
+.nfcResultIcon   { color: hsl(173, 60%, 40%); flex-shrink: 0; }
+.nfcResultHeader h3   { font-size: 1.1rem; font-weight: 800; color: hsl(220, 30%, 15%); }
+.nfcResultHeader span { font-size: 0.82rem; color: hsl(220, 15%, 48%); }
+
+.nfcUrlBlock { display: flex; flex-direction: column; gap: 8px; }
+.nfcUrlBlock label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: hsl(220, 15%, 48%);
+}
+
+.nfcUrlRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: hsl(220, 30%, 97%);
+  border-radius: 12px;
+  border: 1.5px solid hsl(220, 20%, 88%);
+}
+
+.nfcUrl {
+  flex: 1;
+  font-size: 0.88rem;
+  font-family: 'Courier New', monospace;
+  color: hsl(224, 60%, 35%);
+  word-break: break-all;
+}
+
+.nfcCopyBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 1.5px solid hsl(224, 50%, 75%);
+  background: white;
+  color: hsl(224, 60%, 45%);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.nfcCopyBtn:hover { background: hsl(224, 80%, 97%); border-color: hsl(224, 60%, 55%); }
+
+.nfcMeta { display: flex; gap: 20px; flex-wrap: wrap; font-size: 0.78rem; color: hsl(220, 15%, 55%); }
+.nfcMeta code { background: hsl(220, 20%, 94%); padding: 2px 6px; border-radius: 5px; font-size: 0.75rem; }
+
+.nfcInstructions {
+  padding: 14px 16px;
+  background: hsl(47, 100%, 97%);
+  border: 1.5px solid hsl(47, 80%, 85%);
+  border-radius: 12px;
+  font-size: 0.84rem;
+  color: hsl(40, 40%, 30%);
+  line-height: 1.6;
+}
+
