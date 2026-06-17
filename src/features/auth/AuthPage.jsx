@@ -66,13 +66,7 @@ export default function AuthPage() {
           Tu tranquilidad, su seguridad. Al ingresar aceptas los términos de servicio.
         </p>
 
-        <a
-          href="/clinic"
-          className={styles.clinicLink}
-          aria-label="Ir al portal de clínicas"
-        >
-          ¿Eres una clínica o veterinario? →
-        </a>
+
       </div>
     </div>
   );
