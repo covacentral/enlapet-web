@@ -93,7 +93,10 @@ function ClinicRequestsPanel() {
   const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
-    const q = query(collection(db, 'clinic_verifications'), where('status', '==', 'pending'));
+    const q = query(
+      collection(db, 'clinic_verifications'),
+      where('status', 'in', ['pending', 'pending_review'])
+    );
     const unsub = onSnapshot(q, (snap) => {
       setRequests(snap.docs.map(d => ({ id: d.id, ...d.data() })));
       setLoading(false);

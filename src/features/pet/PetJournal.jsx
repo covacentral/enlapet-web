@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { doc, getDoc, collection, addDoc, query, orderBy, onSnapshot } from 'firebase/firestore';
 import { db } from '../../core/firebase/firebase';
+import { useAuth } from '../auth/AuthContext';
 import styles from './PetJournal.module.css';
 
 export default function PetJournal({ petId, onBack }) {
+  const { user } = useAuth();
   const [pet, setPet] = useState(null);
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -73,7 +75,11 @@ export default function PetJournal({ petId, onBack }) {
         title: formData.title,
         date: formData.date,
         notes: formData.notes,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        // Campos necesarios para las reglas de Firestore
+        ownerId: user.uid,
+        source: 'owner',          // 'owner' | 'clinic' — diferencia visual en la timeline
+        signed: false,            // registros de dueño no tienen firma digital de vet
       });
 
       // Limpiar formulario
@@ -86,7 +92,7 @@ export default function PetJournal({ petId, onBack }) {
       setShowForm(false);
     } catch (error) {
       console.error("Error al añadir registro médico:", error);
-      alert("No se pudo añadir el registro. Verifica tus permisos.");
+      alert("No se pudo guardar el registro. Código de error: " + (error?.code || error?.message || 'desconocido'));
     } finally {
       setSaving(false);
     }
@@ -205,9 +211,20 @@ export default function PetJournal({ petId, onBack }) {
                   <span className={styles.recordTitle}>{record.title}</span>
                   <span className={styles.recordDate}>{record.date}</span>
                 </div>
-                <span className={`${styles.recordBadge} ${record.type === 'vaccine' ? styles.badgeVaccine : styles.badgeHistory}`}>
-                  {record.type === 'vaccine' ? 'Vacuna' : 'Clínico'}
-                </span>
+                <div className={styles.recordBadgeRow}>
+                  <span className={`${styles.recordBadge} ${record.type === 'vaccine' ? styles.badgeVaccine : styles.badgeHistory}`}>
+                    {record.type === 'vaccine' ? 'Vacuna' : 'Clínico'}
+                  </span>
+                  {/* Diferenciador visual: registro del dueño vs veterinario */}
+                  {record.source === 'owner'
+                    ? <span className={styles.badgeOwner}>📋 Registrado por el dueño</span>
+                    : record.signed
+                      ? <span className={styles.badgeVet}>🏥 Firmado por veterinario</span>
+                      : record.clinicName
+                        ? <span className={styles.badgeClinic}>🏥 {record.clinicName}</span>
+                        : null
+                  }
+                </div>
                 {record.notes && <p className={styles.recordNotes}>{record.notes}</p>}
               </div>
             </div>

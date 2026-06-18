@@ -71,13 +71,21 @@ service cloud.firestore {
 
       // Subcolección: Historias Clínicas
       match /medical_records/{recordId} {
-        // Lectura: dueño, admin, o veterinario verificado de cualquier clínica con permiso
+        // Lectura: dueño, admin, o veterinario con permiso autorizado
         allow read: if isAdmin() ||
           (isAuthenticated() && get(/databases/$(database)/documents/pets/$(petId)).data.ownerId == request.auth.uid) ||
-          (isAuthenticated() && exists(/databases/$(database)/documents/clinical_permissions/$(request.auth.uid + '_' + petId)) &&
+          (isAuthenticated() &&
+           exists(/databases/$(database)/documents/clinical_permissions/$(request.auth.uid + '_' + petId)) &&
            get(/databases/$(database)/documents/clinical_permissions/$(request.auth.uid + '_' + petId)).data.status == 'authorized');
 
-        // Escritura: solo admin o veterinario autorizado (con permiso del dueño)
+        // Escritura CASO A: dueño añade su propio historial (registros previos, vacunas, etc.)
+        // El dueño DEBE enviar ownerId == su uid y source == 'owner'
+        allow create: if isAuthenticated() &&
+          get(/databases/$(database)/documents/pets/$(petId)).data.ownerId == request.auth.uid &&
+          request.resource.data.ownerId == request.auth.uid &&
+          request.resource.data.source == 'owner';
+
+        // Escritura CASO B: veterinario autorizado (con permiso del dueño)
         allow create: if isAdmin() ||
           (isAuthenticated() &&
            exists(/databases/$(database)/documents/clinical_permissions/$(request.auth.uid + '_' + petId)) &&

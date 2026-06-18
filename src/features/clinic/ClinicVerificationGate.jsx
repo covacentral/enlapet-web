@@ -19,7 +19,8 @@ export default function ClinicVerificationGate() {
   const [showForm, setShowForm] = useState(false);
 
   const status = clinicData?.status || 'pending';
-  const verificationSubmitted = !!(clinicData?.verificationSubmittedAt);
+  // verificationSubmittedAt indica que ya enviaron docs (status = pending_review)
+  const verificationSubmitted = !!(clinicData?.verificationSubmittedAt) || status === 'pending_review';
 
   // ── Clínica verificada → dashboard completo ──
   if (status === 'verified') {

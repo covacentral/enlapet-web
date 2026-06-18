@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { doc, setDoc, updateDoc } from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../../core/firebase/firebase';
 import { useAuth } from '../auth/AuthContext';
@@ -60,6 +60,7 @@ export default function ClinicVerificationForm({ isResubmission = false, onBack 
 
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const [submitSuccess, setSubmitSuccess] = useState(false);
 
   const isIPS = clinicSubtype === 'ips' || clinicData?.clinicSubtype === 'ips';
 
@@ -124,23 +125,61 @@ export default function ClinicVerificationForm({ isResubmission = false, onBack 
         ...(isResubmission ? { resubmittedAt: now } : {}),
       });
 
-      // ── Actualizar /clinics/{uid} con datos básicos ──
-      await updateDoc(doc(db, 'clinics', clinicId), {
+      // ── Crear / actualizar clínica en /clinics con status visible para el Gate ──
+      // Usamos setDoc merge:true para funcionar tanto en cuentas nuevas como existentes
+      await setDoc(doc(db, 'clinics', clinicId), {
         nit: form.nit.trim(),
         address: form.address.trim(),
         city: form.city.trim(),
         phone: form.phone.trim(),
         verificationSubmittedAt: now,
         updatedAt: now,
-      });
+        // Resetear status a 'pending_review' para que el Gate muestre pantalla correcta
+        // Esto también funciona en re-envíos (reset desde 'rejected')
+        status: 'pending_review',
+      }, { merge: true });
+
+      setSubmitSuccess(true);
 
     } catch (err) {
       console.error('Error al enviar verificación:', err);
-      setSubmitError('Error al enviar: ' + err.message);
+      setSubmitError('Error al enviar: ' + (err?.code || err?.message || 'desconocido'));
     } finally {
       setSubmitting(false);
     }
   };
+
+  // ── Pantalla de éxito ──
+  if (submitSuccess) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.card}>
+          <div className={styles.cardHeader}>
+            <div className={styles.headerIcon} style={{ background: 'hsl(145, 60%, 40%)' }}>
+              <CheckCircle2 size={28} />
+            </div>
+            <div>
+              <h1 className={styles.title}>Solicitud Enviada</h1>
+              <p className={styles.subtitle}>Tu verificación está en revisión</p>
+            </div>
+          </div>
+          <div className={styles.infoBanner} style={{ background: 'hsl(145, 60%, 97%)', borderColor: 'hsl(145, 60%, 80%)' }}>
+            <CheckCircle2 size={16} className={styles.infoIcon} style={{ color: 'hsl(145, 60%, 40%)' }} />
+            <p>
+              Recibimos tus documentos correctamente. El equipo de <strong>covacentral</strong> los revisará
+              y te notificará por correo. Cuando sea aprobado, esta pantalla se actualizará automáticamente.
+            </p>
+          </div>
+          <p style={{ fontSize: '0.85rem', color: 'hsl(220, 15%, 50%)', marginTop: 16, textAlign: 'center' }}>
+            Puedes cerrar sesión y volver más tarde — tu sesión se actualizará sola cuando seas aprobado.
+          </p>
+          <button onClick={logout} className={styles.logoutBtn} style={{ marginTop: 24 }}>
+            <LogOut size={16} /> Cerrar Sesión por ahora
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.container}>

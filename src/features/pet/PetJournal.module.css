@@ -223,6 +223,44 @@
   color: hsl(270, 100%, 40%);
 }
 
+.recordBadgeRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-top: 4px;
+}
+
+/* Registrado por el dueño — tono neutro/gris */
+.badgeOwner {
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: hsl(220, 15%, 94%);
+  color: hsl(220, 15%, 45%);
+}
+
+/* Firmado por veterinario — tono verde clínico */
+.badgeVet {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: hsl(145, 60%, 94%);
+  color: hsl(145, 60%, 30%);
+}
+
+/* Registrado por clínica sin firma (legacy) */
+.badgeClinic {
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: hsl(224, 80%, 96%);
+  color: hsl(224, 60%, 40%);
+}
+
 .recordNotes {
   font-size: 0.85rem;
   color: hsl(220, 10%, 45%);
